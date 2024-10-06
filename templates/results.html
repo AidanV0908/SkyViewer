@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Display Results</title>
+</head>
+<body>
+    <h1>View Results for {{satelliteName}} </h1>
+    <p>Your results have been generated below!</p>
+    <h3>AI Exerpt: </h3>
+    <p>{{ai_exerpt}}</p>
+    <p><i>Disclaimer: The AI Exerpt is a thing I added for fun, and it may not be accurate all of the time. Do not take this as an absolute truth. The AI
+        has gotten really good recently but do a verification check if it is a matter of life and death.
+    </i></p>
+    <h3>TLE Data: </h3>
+        <p style="text-indent: 15px"> Satellite Name: {{satelliteName}} </p>
+        <p style="text-indent: 15px">Satellite ID: {{satelliteId}} </p>
+        <p style="text-indent: 15px">Epoch: {{epoch}} </p>
+        <p style="text-indent: 15px">Classification: {{classification}} </p>
+        <p style="text-indent: 15px">Semi-Major Axis (Epoch): {{sma}} </p>
+        <p style="text-indent: 15px">Eccentricity (Epoch): {{ecc}} </p>
+        <p style="text-indent: 15px">Inclination (Epoch): {{inc}} </p>
+        <p style="text-indent: 15px">Right Ascension of Ascending Node (Epoch): {{raan}} </p>
+        <p style="text-indent: 15px">Argument of Periapsis: {{argp}} </p>
+        <p style="text-indent: 15px">Eccentric Anomaly: {{ea}} </p>
+    <h3>Observation Data: </h3>
+        <p style="text-indent: 15px">Observation Date (Gregorian): {{date}} </p>
+        <p style="text-indent: 15px">Observation Date (Julian): {{ obs_time_jd }} </p>
+        <p style="text-indent: 15px">Observation Time (UTC {{timezone}}): {{time_tz}} </p>
+        <p style="text-indent: 15px">Observation Timezone: UTC {{timezone}} </p>
+        <p style="text-indent: 15px">Observation Time (UTC): {{ obs_time_utc }} </p>
+        <p style="text-indent: 15px">Observation Latitude (deg): {{ latitude }} </p>
+        <p style="text-indent: 15px">Observation Longitude (deg): {{ longitude }} </p>
+        <p style="text-indent: 15px">Distance (km): {{ distance }} </p>
+        <p style="text-indent: 15px">Azimuth (dms): {{ az }} </p>
+        <p style="text-indent: 15px">Elevation (dms): {{ alt }} </p>
+
+    <a href="{{ url_for('SkyViewer') }}">Return</a>
+</body>
+</html>

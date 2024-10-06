@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Satellite</title>
+    <style>
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Step 1: Search for your Satellite</h1>
+    <p>The first step for using SkyViewer is to select your satellite. After you search, API data is pulled 
+        from the <a href="https://api.nasa.gov/">Two-Line Element (TLE) NASA API</a> to list the satellites most
+        relevant to you.</p>
+    <h3>Search Term:</h3>
+    <form action="/sat-search" method="POST">
+        <label for="search_term">Enter Search Term:</label>
+        <input type="text" id="search_term" name="search_term" value="{{ search_term }}">
+        <input type="submit" value="Submit">
+    </form>
+
+    <h3>Results:</h3>
+    {% if API_Code == 200 %}
+        {% if members %}
+            <p><i>{{num_results}} results found.</i></p>
+            <form action="/get-obs-info" method="POST">
+                <!-- Hidden input that will be updated based on button press -->
+                <table>
+                    <style type="text/css">
+                        td {
+                        padding: 3px 15px;
+                        }
+                    </style>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th></th>
+                    </tr>
+                    {% for member in members %}
+                        <tr>
+                            <td>{{ member['satelliteId'] }}</td>
+                            <td>{{ member['name'] }}</td>
+                            <td>
+                                <button type="submit" name="selected_result" value="{{ member['satelliteId'] }}">Select</button>
+                            </td>
+
+                    {% endfor %}
+                </table>
+            </form>
+            <p>Page {{ page }} of {{ pages }}</p>
+            <div>
+                {% if has_prev %}
+                    <a href="{{ url_for('search', page=page-1, search_term=search_term) }}">Prev</a>
+                {% endif %}
+                {% if has_next %}
+                    <a href="{{ url_for('search', page=page+1, search_term=search_term) }}">Next</a>
+                {% endif %}
+            </div>
+        {% else %}
+            <p>No results found.</p>
+        {% endif %}
+    {% else %}
+        <p>Failure: API Code {{ API_Code }}</p>
+    {% endif %}
+</body>
+</html>

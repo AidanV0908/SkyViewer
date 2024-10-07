@@ -3,68 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/skyviewer.css') }}">
     <title>Collect Observational Data</title>
+    <style>
+        body {  
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        fieldset {
+            border: 1px solid #ccc; /* Border for fieldset */
+            margin: 15px 0; /* Margin for fieldset */
+            padding: 10px; /* Padding for fieldset */
+            width: 90%; /* Make fieldset responsive */
+            max-width: 500px; /* Set a max width for better readability */
+        }
+        .form-row {
+            display: flex; /* Use flexbox to align items */
+            justify-content: space-between; /* Space between items */
+            margin: 10px 0; /* Margin for each row */
+        }
+        input[type="date"],
+        input[type="time"],
+        input[type="number"] {
+            flex: 1; /* Allow inputs to take equal space */
+            margin-right: 10px; /* Space between inputs */
+        }
+        button {
+            padding: 10px 15px; /* Add padding for buttons */
+            margin: 0 5px; /* Space between buttons */
+            background-color: #007bff; /* Button color */
+            color: white; /* Button text color */
+            border: none; /* Remove border */
+            border-radius: 5px; /* Rounded corners */
+            cursor: pointer; /* Cursor on hover */
+            transition: background-color 0.3s; /* Transition for hover effect */
+        }
+        button:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+    </style>
 </head>
 <body>
-    <h1>Step 2: Enter Observational Data</h1>
-    <p>If you are interested in locating this satellite in the sky, some observational data is needed. If all you want is general information, 
-        feel free to skip this page using the skip button below. Latitude and longitude are the geodetic latitudes and longitudes, and are provided
-        by Google Maps.</p>
+    <div class="progress-container">
+        <div class="progress-bar">
+            <div class="progress-step complete"></div>
+            <div class="progress-step complete"></div>
+            <div class="progress-step incomplete"></div>
+        </div>
+    </div>
+    <h1 style="margin-bottom:0; margin-left: 10%; margin-right: 10%;">Step 2: Enter Observational Data</h1>
+    <p style="margin-left: 10%; margin-right: 10%;">This page collects data on the ground station for observational data. It is automatically
+        set to the current time and location. Latitude and longitude are the geodetic latitudes and longitudes, and are provided by Google Maps.</p>
     <form action="/results" method="GET" onsubmit="return validateForm()">
-        <input type="hidden" id="id_field" name="satelliteId" value = "{{satellite_id}}">
+        <input type="hidden" id="id_field" name="satelliteId" value="{{satellite_id}}">
+
         <!-- Date, Time, Time Zone on the same row -->
         <fieldset>
             <legend>Observational Data</legend>
-            <label for="date">Date:</label>
-            <input type="date" id="date" name="date" placeholder="Date">
-            <label for="Time">Time:</label>
-            <input type="time" id="time" step="1" name="time" placeholder="Time">
-            <label for="timezone">UTC (+/-):</label>
-            <input type="number" name="timezone" id="timezone" placeholder="Time Zone" min="-12" max="14" step="0.5">
+            <div class="form-row">
+                <label for="date">Date:</label>
+                <input type="date" id="date" name="date" placeholder="Date" required>
+            </div>
+            <div class="form-row">
+                <label for="time">Time:</label>
+                <input type="time" id="time" step="1" name="time" placeholder="Time" required>
+            </div>
+            <div class="form-row">
+                <label for="timezone">UTC (+/-):</label>
+                <input type="number" name="timezone" id="timezone" placeholder="Time Zone" min="-12" max="14" step="0.5" required>
+            </div>
         </fieldset>
 
         <!-- Latitude and Longitude on the same row -->
         <fieldset>
             <legend>Geodetic Coordinates</legend>
-            <label for="latitude">Latitude (Degrees):</label>
-            <input type="number" name="latitude" id="latitude" placeholder="Latitude" min="-90" max = "90" step="0.0000001">
-            <label for="longitude">Longitude (Degrees):</label>
-            <input type="number" name="longitude" id="longitude" placeholder="Longitude" min="-180" max="180" step="0.0000001">
+            <div class="form-row">
+                <label for="latitude">Latitude (Degrees):</label>
+                <input type="number" name="latitude" id="latitude" placeholder="Latitude" min="-90" max="90" step="0.0000001" required>
+            </div>
+            <div class="form-row">
+                <label for="longitude">Longitude (Degrees):</label>
+                <input type="number" name="longitude" id="longitude" placeholder="Longitude" min="-180" max="180" step="0.0000001" required>
+            </div>
         </fieldset>
 
-          <!-- Submit and Skip buttons -->
-          <div class="buttons">
+        <!-- Submit and Skip buttons -->
+        <div style="text-align: center;">
             <button type="submit">Submit</button>
-            <!-- Skip button - dynamically construct the URL with JavaScript -->
-            <button type="button" onclick="skipForm()">Skip</button>
         </div>
     </form>
-    <a href="{{ url_for('SkyViewer') }}">Return</a>
 
     <script>
+        // Automatically fill the form with current date, time, and user's location
+        window.onload = function() {
+            // Get current date
+            const today = new Date();
+            const date = today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+            document.getElementById("date").value = date;
+
+            // Get current time in HH:MM format
+            const time = today.toTimeString().split(' ')[0].slice(0, 5); // Format: HH:MM
+            document.getElementById("time").value = time;
+
+            // Use Geolocation API to get user's location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    document.getElementById("latitude").value = position.coords.latitude;
+                    document.getElementById("longitude").value = position.coords.longitude;
+
+                    // Get timezone offset in hours
+                    const timezoneOffset = -today.getTimezoneOffset() / 60; // Convert to hours
+                    document.getElementById("timezone").value = timezoneOffset; // Set the value in the timezone input
+                }, () => {
+                    alert("Geolocation is not enabled. Please enter your coordinates manually.");
+                });
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        };
+
         function validateForm() {
-          const date = document.getElementById("date").value;
-          const time = document.getElementById("time").value;
-          const timezone = document.getElementById("timezone").value;
+            const date = document.getElementById("date").value;
+            const time = document.getElementById("time").value;
+            const timezone = document.getElementById("timezone").value;
 
-          const latitude = document.getElementById("latitude").value;
-          const longitude = document.getElementById("longitude").value;
-          
-          if (date === "" || time === "" || timezone == "" || latitude == "" || longitude == "") {
-            alert("All fields must be filled out if submitting the form. Click skip if you want to skip.");
-            return false; // Prevent form submission
-          }
-          return true; // Allow form submission
-        }
-    </script>
-
-    <script>
-        function skipForm() {
-            // Get the value of the ID field
-            var id = document.getElementById('id_field').value;
-
-            // Redirect to the submit route with only the ID
-            window.location.href = '/results?satelliteId=' + encodeURIComponent(id)
+            const latitude = document.getElementById("latitude").value;
+            const longitude = document.getElementById("longitude").value;
+            
+            if (date === "" || time === "" || timezone === "" || latitude === "" || longitude === "") {
+                alert("All fields must be filled out if submitting the form. Click skip if you want to skip.");
+                return false; // Prevent form submission
+            }
+            return true; // Allow form submission
         }
     </script>
 </body>

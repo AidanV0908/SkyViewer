@@ -3,12 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/skyviewer.css') }}">
     <title>SkyViewer</title>
+    <script>
+        // When the user clicks on <div>, open the popup
+        function Popup() {
+          var popup = document.getElementById("myPopup");
+          popup.classList.toggle("show");
+        }
+    </script>
 </head>
 <body>
-   <h1>SKYVIEWER</h1>
-   <h3>By Aidan Velleca</h3>
-   <h3>Version 1.0</h3>
-   <button onclick="window.location.href='/sat-search'">Start</button>
+    <div class="bg">
+        <div class="vignette">
+
+                <div class="title">
+                    <h1 class="title-text">SKYVIEWER v1.1</h1>
+                    <h3 class="tagline-text">The Astronomer's Guide to the Sky</h3>
+                </div>
+                <div id="popupModal" class="modal">
+                    <div class="modal-content" style="color:black; text-align: center;">
+                        <span class="close">&times;</span>
+                        <h2>SkyViewer Changelog</h2>
+                        <h4>Version 1.1</h4>
+                        <p>Created changelog</p>
+                        <p>&#127775 BEAUTIFICATION &#127775</p>
+                        <p>Autofill observation prompts with current user time and location</p>
+                        <p>Update labels to be more appropriate, made units consistent</p>
+                        <p>Added progress bar</p>
+                        <p>Fixed observation time milliseconds only displaying one digit</p>
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    
+                    <table style="width:100%; height:100%;">
+                        <tr>
+                            <th style="padding-bottom:2%"><button class="button-main", onclick="window.location.href='/sat-search'">Start</button></th>
+                        </tr>
+                        <tr>
+                            <th style="padding-bottom:2%"><button class="button-main", id="openPopup">Changelog</button></th>
+                        </tr>
+                        <tr>
+                            <th><button class="button-main", onclick="window.location.href='/usage-guide'">Help</button></th>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="footer">
+                    <p>A WebApp by Aidan Velleca</p>
+                </div>
+
+                <script src="{{ url_for('static',filename='javascript/popup.js') }}"></script>
+        </div>
+    </div>
 </body>
 </html>
+

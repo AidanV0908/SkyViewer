@@ -3,65 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/skyviewer.css') }}">
     <title>Select Satellite</title>
     <style>
-        ul {
-            list-style-type: none;
-            padding: 0;
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        .table-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3 columns */
+            gap: 10px; /* Space between cells */
+            width: 100%; /* Ensure it takes full width */
+            max-width: 800px; /* Set a max width for better readability */
+        }
+
+        .header-row {
+            display: contents; /* Use contents to allow grid layout */
+            font-weight: bold;
+            text-align: center;
+            background-color: #f0f0f0; /* Background color for header */
+            padding: 00px; /* Padding for header */
+        }
+
+        .row {
+            display: contents; /* Allow row items to be grid items */
+        }
+
+        .hidden-cell{
+            display: none;
+        }
+
+        .cell {
+            text-align: center; /* Center text */
+            padding: 0px; /* Add padding for cells */
+        }
+
+        .submit-button {
+            text-align: center; /* Center text */
+            padding: 0px; /* Add padding for cells */
+            background-color: #f5f5dc;
+            border: 2px solid black;
+            border-radius: 0%;
+            width: 50%;
+            height: 30px;
+            cursor: pointer; /* Pointer cursor on hover */
+        }
+
+        .submit-button:hover {
+            background-color: #f8f8dc; /* Lighter on hover */
+            transform: scale(1.05); /* Slightly enlarge */
+            transition: background-color 0.3s, transform 0.3s; /* Smooth transition */
+        }
+
+        .submit-button:active {
+            background-color: white; /* Even darker on click */
+        }
+
+        /* Media Query for Larger Screens */
+        @media (min-width: 768px) {
+            .table-container {
+                grid-template-columns: repeat(6, 1fr); /* Switch to 6 columns for larger screens */
+            }
+
+            .header-row {
+                grid-column: span 3; /* Repeat the header in 3 columns */
+            }
+            
+            .hidden-cell{
+                display: grid;
+                text-align: center; /* Center text */
+                padding: 0px; /* Add padding for cells */
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Step 1: Search for your Satellite</h1>
-    <p>The first step for using SkyViewer is to select your satellite. After you search, API data is pulled 
+    <div class="progress-container">
+        <div class="progress-bar">
+            <div class="progress-step complete"></div>
+            <div class="progress-step incomplete"></div>
+            <div class="progress-step incomplete"></div>
+        </div>
+    </div>
+    <h1 style="margin-bottom:0; margin-left: 10%; margin-right: 10%;">Step 1: Search for your Satellite</h1>
+    <p style="margin-left: 10%; margin-right: 10%;">The first step for using SkyViewer is to select your satellite. After you search, API data is pulled 
         from the <a href="https://api.nasa.gov/">Two-Line Element (TLE) NASA API</a> to list the satellites most
-        relevant to you.</p>
-    <h3>Search Term:</h3>
+        relevant to you. Use the search to filter results.</p>
+    <hr>
     <form action="/sat-search" method="POST">
         <label for="search_term">Enter Search Term:</label>
         <input type="text" id="search_term" name="search_term" value="{{ search_term }}">
         <input type="submit" value="Submit">
     </form>
 
-    <h3>Results:</h3>
+    <h3 style="margin-bottom: 1%;">Results</h3>
     {% if API_Code == 200 %}
         {% if members %}
-            <p><i>{{num_results}} results found.</i></p>
+            <p style="margin-top: 0;"><i>{{num_results}} results found.</i></p>
             <form action="/get-obs-info" method="POST">
-                <!-- Hidden input that will be updated based on button press -->
-                <table>
-                    <style type="text/css">
-                        td {
-                        padding: 3px 15px;
-                        }
-                    </style>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th></th>
-                    </tr>
+                <div class="table-container">
+                    <div class="header-row">
+                        <div class="cell">ID</div>
+                        <div class="cell">Name</div>
+                        <div class="cell"></div>
+                        <div class="hidden-cell">ID</div>
+                        <div class="hidden-cell">Name</div>
+                        <div class="hidden-cell"></div>
+                    </div>
                     {% for member in members %}
-                        <tr>
-                            <td>{{ member['satelliteId'] }}</td>
-                            <td>{{ member['name'] }}</td>
-                            <td>
-                                <button type="submit" name="selected_result" value="{{ member['satelliteId'] }}">Select</button>
-                            </td>
-
+                        <div class="row">
+                            <div class="cell">{{ member['satelliteId'] }}</div>
+                            <div class="cell">{{ member['name'] }}</div>
+                            <div class="cell">
+                                <button class="submit-button" type="submit" name="selected_result" value="{{ member['satelliteId'] }}">Select</button>
+                            </div>
+                        </div>
                     {% endfor %}
-                </table>
+                </div>
             </form>
-            <p>Page {{ page }} of {{ pages }}</p>
-            <div>
+            <div class="pagination">
                 {% if has_prev %}
-                    <a href="{{ url_for('search', page=page-1, search_term=search_term) }}">Prev</a>
+                    <a href="{{ url_for('search', page=page-1, search_term=search_term) }}" class="pagination-link">Prev</a>
                 {% endif %}
+                <p class="page-info">Page {{ page }} of {{ pages }}</p>
                 {% if has_next %}
-                    <a href="{{ url_for('search', page=page+1, search_term=search_term) }}">Next</a>
+                    <a href="{{ url_for('search', page=page+1, search_term=search_term) }}" class="pagination-link">Next</a>
                 {% endif %}
             </div>
         {% else %}
-            <p>No results found.</p>
+            <p><i>No results found yet. Have you entered a search term?</i></p>
         {% endif %}
     {% else %}
         <p>Failure: API Code {{ API_Code }}</p>

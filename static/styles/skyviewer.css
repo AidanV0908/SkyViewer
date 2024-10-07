@@ -1,0 +1,239 @@
+.bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    color:beige;
+    background-image: url('../images/AdobeStock_132366192.jpeg');
+    background-repeat: no-repeat;
+    background-size:cover;
+    background-position: center;
+}
+
+.vignette{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(0, 0, 0, 0.5) 60%, rgba(0, 0, 0, 0) 100%); /* Vignette effect */
+}
+
+.button-main {
+  background-color: rgba(51, 51, 51, 0.3); /* Dark background */
+  border-radius: 3%;
+  font-size: 40px;
+  width: 100%;
+  height: 100%;
+  border-color: beige;
+  border-width: 1%;
+  color: #fff; /* Light text */
+  padding: 10px 20px; /* Add padding */
+  cursor: pointer; /* Pointer cursor on hover */
+}
+
+.landing-container {
+  height: 90vh;
+}
+
+.footer {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  margin: auto;
+  padding-right: 2%;
+  padding-bottom: 1%;
+}
+
+.title {
+  margin-right: 3%;
+  text-align: right;
+  justify-content: right;
+  align-items: right;
+}
+
+.buttons {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 20%;
+  height: 30%;
+  padding-left: 3%;
+  padding-bottom: 3%;
+}
+
+.button-main:hover {
+  background-color: #555; /* Lighter on hover */
+  transform: scale(1.05); /* Slightly enlarge */
+  transition: background-color 0.3s, transform 0.3s; /* Smooth transition */
+}
+
+.button-main:active {
+  background-color: #444; /* Even darker on click */
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 100%;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto; /* 15% from the top and centered */
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%; /* Could be more or less, depending on screen size */
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.title-text{
+  font-size: 60px; 
+  margin-bottom: 0px;
+}
+
+.tagline-text{
+  font-size: 25px; 
+  margin-bottom: 0px;
+}
+
+@media (max-width: 768px) {
+  .title-text{
+    font-size: 45px;
+  }
+
+  .tagline-text{
+    font-size: 18px; 
+  }
+}
+
+.progress-container {
+  width: 80%;
+  min-height: 20px;
+  background-color: #ddd;
+  border-radius: 25px;
+  overflow: hidden;
+  margin-bottom: 10px;
+  border: 3px solid black; /* Add a black border around the container */
+}
+
+.progress-bar {
+  display: flex;
+  height: 100%;
+  border-radius: 15px;
+}
+
+.progress-step {
+  flex: 1;
+  height: 100%;
+  transition: background-color 0.3s;
+  border-right: none;
+}
+
+/* Add a right border only for the first two steps */
+.progress-step:not(:last-child) {
+  border-right: 3px solid black; /* Add right border only to first two steps */
+}
+
+.incomplete {
+  background-color: #a5a5a5; /* Color for Step 1 */
+}
+
+/* Completed steps */
+.complete {
+  background-color: #27ae60; /* Color for completed steps */
+}
+
+.pagination {
+  display: flex;               /* Use flexbox for layout */
+  justify-content: center;     /* Center the items horizontally */
+  align-items: center;         /* Center items vertically */
+  margin-top: 20px;           /* Space above the pagination */
+}
+
+.pagination-link {
+  padding: 10px 15px;         /* Add padding to the links */
+  margin: 0 5px;              /* Space between links */
+  text-decoration: none;       /* Remove underline */
+  background-color: #007bff;  /* Background color for links */
+  color: white;                /* Text color */
+  border-radius: 5px;         /* Rounded corners */
+  transition: background-color 0.3s; /* Smooth transition for hover effect */
+}
+
+.pagination-link:hover {
+  background-color: #0056b3;  /* Darker background on hover */
+}
+
+.page-info {
+  margin: 0 15px;             /* Margin around page info */
+  font-weight: bold;           /* Make the page info bold for emphasis */
+}
+
+.results {
+  text-align: left;
+  margin-left: 10%;
+  margin-right: 10%;
+}
+
+.return-guide {
+  position: absolute;
+  bottom: 4%;
+  padding: 10px 15px;         /* Add padding to the links */
+  margin: 0 5px;              /* Space between links */
+  width: 30%;
+  height: 70px;
+  font-size: 50px;
+  text-decoration: none;       /* Remove underline */
+  background-color: #464646;  /* Background color for links */
+  color: white;                /* Text color */
+  border-radius: 5px;         /* Rounded corners */
+  transition: background-color 0.3s; /* Smooth transition for hover effect */
+}
+
+.return-guide:hover {
+  background-color: rgb(40, 39, 41);  /* Darker background on hover */
+}
+
+.return {
+  width: 100px;
+  height: 30px;
+  margin-bottom: 2%;
+  font-size: 20px;
+  text-decoration: none;
+  background-color: #8c8c8c; 
+  color: white;                /* Text color */
+  border-radius: 5px;         /* Rounded corners */
+  transition: background-color 0.3s; /* Smooth transition for hover effect */
+}
+
+.return:hover {
+  background-color: #777777;  /* Darker background on hover */
+}
+

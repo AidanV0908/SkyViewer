@@ -18,6 +18,7 @@ load_dotenv()
 
 os.environ['OPENAI_API_KEY'] = os.getenv("OPENAI_API_KEY")
 openai.api_key = os.environ['OPENAI_API_KEY']
+NASA_API_KEY = os.environ['NASA_API_KEY']
 
 app = Flask(__name__)
 
@@ -25,17 +26,21 @@ app = Flask(__name__)
 #NASA_API_KEY = os.environ['NASA_API_KEY']
 # API endpoint (modify this to match the actual API you're using)
 API_URL = "http://tle.ivanstanojevic.me/api/tle"  # Replace with your actual API endpoint
+
 # API Headers
 headers = {
-    #'api_key': NASA_API_KEY,
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0',
     'Accept': 'application/json',  # Modify this depending on what the API expects
     'Connection': 'keep-alive'  # Keep the connection alive
 }
 
-@app.route("/", methods=['GET', 'POST'])
+@app.route("/")
 def SkyViewer():
     return render_template('startup.html')
+
+@app.route("/usage-guide")
+def info():
+    return render_template('usageguide.html')
 
 @app.route("/sat-search", methods=['GET', 'POST'])
 def search():
@@ -109,6 +114,7 @@ def get_results():
     az = alt = distance = epoch = classification = ai_exerpt = name = "<Missing>"
     sma = inc = raan = argp = ea = ecc = "<Missing>"
     obs_time_jd = obs_time_utc = time_tz = '<Missing>'
+    is_obs = False
     # Get TLE data
     api_url = f"{API_URL}/{satelliteId}"
     response = requests.get(api_url, headers=headers)
@@ -119,7 +125,6 @@ def get_results():
         try:
             PROMPT = f"Generate a brief exerpt (50 - 100 words) about the satellite {name}, ID {satelliteId} in the NORAD database. Do not restate the ID, that is for your reference."
             response = comp(PROMPT)
-            print(response.choices[0].message.content)
             ai_exerpt = response.choices[0].message.content
         except:
             ai_exerpt = "I have been drained of API tokens and I'm not trying to spend a fortune on this. Try again next month."
@@ -142,12 +147,13 @@ def get_results():
         ecc = orbit.eccentricity
         inc = orbit.inclination.degrees
         raan = orbit.longitude_of_ascending_node.degrees
-        argp = orbit.argument_of_periapsis
-        ea = orbit.eccentric_anomaly.degrees
+        argp = orbit.argument_of_periapsis.degrees
         # Confirm form submitted and get observation data
         if (date != '<Missing>'):
+            is_obs = True
+
             [y, m, d] = date.split('-')
-            h = min = s = 0
+            h = min = s = '00'
             try:
                 [h, min, s] = time.split(':')
             except:
@@ -166,6 +172,8 @@ def get_results():
             difference = satellite - obs_loc
             topocentric = difference.at(obs_time)
             alt, az, distance = topocentric.altaz()
+            az = az.degrees
+            alt = alt.degrees
             distance = distance.km
     else:
         ai_exerpt = "Unable to generate -- missing satellite information"
@@ -190,9 +198,9 @@ def get_results():
                     obs_time_utc = obs_time_utc,
                     ecc = ecc,
                     argp = argp,
-                    ea = ea,
                     classification = classification,
-                    time_tz = time_tz)
+                    time_tz = time_tz,
+                    is_obs = is_obs)
 
 # function that takes in string argument as parameter
 def comp(PROMPT):

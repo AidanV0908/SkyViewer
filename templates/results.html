@@ -3,39 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/skyviewer.css') }}">
     <title>Display Results</title>
+    <style>
+        body {
+            
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+            background-color: #f0f0f0;
+            
+        }
+
+        p {
+            text-indent: 15px;
+        }
+    </style>
 </head>
 <body>
-    <h1>View Results for {{satelliteName}} </h1>
-    <p>Your results have been generated below!</p>
-    <h3>AI Exerpt: </h3>
-    <p>{{ai_exerpt}}</p>
-    <p><i>Disclaimer: The AI Exerpt is a thing I added for fun, and it may not be accurate all of the time. Do not take this as an absolute truth. The AI
-        has gotten really good recently but do a verification check if it is a matter of life and death.
-    </i></p>
-    <h3>TLE Data: </h3>
-        <p style="text-indent: 15px"> Satellite Name: {{satelliteName}} </p>
-        <p style="text-indent: 15px">Satellite ID: {{satelliteId}} </p>
-        <p style="text-indent: 15px">Epoch: {{epoch}} </p>
-        <p style="text-indent: 15px">Classification: {{classification}} </p>
-        <p style="text-indent: 15px">Semi-Major Axis (Epoch): {{sma}} </p>
-        <p style="text-indent: 15px">Eccentricity (Epoch): {{ecc}} </p>
-        <p style="text-indent: 15px">Inclination (Epoch): {{inc}} </p>
-        <p style="text-indent: 15px">Right Ascension of Ascending Node (Epoch): {{raan}} </p>
-        <p style="text-indent: 15px">Argument of Periapsis: {{argp}} </p>
-        <p style="text-indent: 15px">Eccentric Anomaly: {{ea}} </p>
-    <h3>Observation Data: </h3>
-        <p style="text-indent: 15px">Observation Date (Gregorian): {{date}} </p>
-        <p style="text-indent: 15px">Observation Date (Julian): {{ obs_time_jd }} </p>
-        <p style="text-indent: 15px">Observation Time (UTC {{timezone}}): {{time_tz}} </p>
-        <p style="text-indent: 15px">Observation Timezone: UTC {{timezone}} </p>
-        <p style="text-indent: 15px">Observation Time (UTC): {{ obs_time_utc }} </p>
-        <p style="text-indent: 15px">Observation Latitude (deg): {{ latitude }} </p>
-        <p style="text-indent: 15px">Observation Longitude (deg): {{ longitude }} </p>
-        <p style="text-indent: 15px">Distance (km): {{ distance }} </p>
-        <p style="text-indent: 15px">Azimuth (dms): {{ az }} </p>
-        <p style="text-indent: 15px">Elevation (dms): {{ alt }} </p>
-
-    <a href="{{ url_for('SkyViewer') }}">Return</a>
+    <div class="progress-container">
+        <div class="progress-bar">
+            <div class="progress-step complete"></div>
+            <div class="progress-step complete"></div>
+            <div class="progress-step complete"></div>
+        </div>
+    </div>
+    <h1 style="margin-bottom:0; margin-left: 10%; margin-right: 10%;">View Results for {{satelliteName}} </h1>
+    <p style="margin-bottom:0; margin-left: 10%; margin-right: 10%;">Your results have been generated below!</p>
+    <div class="results">
+        <h3>AI Exerpt: </h3>
+        <p style="text-indent: 0"><i>Disclaimer: The AI Exerpt is a thing I added for fun, and it may not be accurate all of the time. Do not take this as an absolute truth. The AI
+            has gotten really good recently but do a verification check if it is a matter of life and death.
+        </i></p>
+        <p style="text-indent: 0">{{ai_exerpt}}</p>
+        <h3>TLE Epoch Data </h3>
+            <p> Satellite Name: {{satelliteName}} </p>
+            <p>Satellite ID: {{satelliteId}} </p>
+            <p>Epoch: {{epoch}} </p>
+            <p>Classification: {{classification}} </p>
+            <p>Semi-Major Axis (km): {{sma / 1000}} </p>
+            <p>Eccentricity: {{ecc}} </p>
+            <p>Inclination (deg): {{inc}} </p>
+            <p>Right Ascension of Ascending Node (deg): {{raan}} </p>
+            <p>Argument of Periapsis (deg): {{argp}} </p>
+        <h3>Observation Data: </h3>
+            {% if is_obs %}
+                <p>Observation Date (Gregorian): {{date}} </p>
+                <p>Observation Date (Julian): {{ obs_time_jd }} </p>
+                <p>Observation Time (UTC {{timezone}}): {{time_tz}} </p>
+                <p>Observation Timezone: UTC {{timezone}} </p>
+                <p>Observation Time (UTC): {{ obs_time_utc }} </p>
+                <p>Observation Latitude (deg): {{ latitude }} </p>
+                <p>Observation Longitude (deg): {{ longitude }} </p>
+                <p>Distance (km): {{ distance }} </p>
+                <p>Azimuth (dms): {{ az }} </p>
+                <p>Elevation (dms): {{ alt }} </p>
+            {% else %}
+                <p><i>No observation time specified.</i></p>
+            {% endif %}
+        </div>
+    <div style="text-align:center;">
+        <button class="return" onclick="window.location.href='/'" style="padding-bottom: 10px">Return</a>
+    </div>   
 </body>
 </html>

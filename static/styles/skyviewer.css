@@ -23,14 +23,16 @@
 .button-main {
   background-color: rgba(51, 51, 51, 0.3); /* Dark background */
   border-radius: 3%;
-  font-size: 40px;
-  width: 100%;
-  height: 100%;
   border-color: beige;
   border-width: 1%;
   color: #fff; /* Light text */
   padding: 10px 20px; /* Add padding */
   cursor: pointer; /* Pointer cursor on hover */
+  font-size: 3vh; /* Font size based on viewport height */
+  padding: 1vh 2vw; /* Adjust padding for responsive spacing */
+  width: 100%;
+  height: auto; /* Let height adjust based on content */
+  margin-bottom: 2vh; /* Space between buttons */
 }
 
 .landing-container {
@@ -55,12 +57,11 @@
 
 .buttons {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 20%;
-  height: 30%;
-  padding-left: 3%;
-  padding-bottom: 3%;
+  bottom: 5vh;
+  left: 5vw;
+  width: 35%;
+  max-width: 400px;
+  height: auto;
 }
 
 .button-main:hover {
@@ -123,7 +124,17 @@ body {
   margin-bottom: 0px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 576px) {
+  .title-text{
+    font-size: 30px;
+  }
+
+  .tagline-text{
+    font-size: 16px; 
+  }
+}
+
+@media (max-width: 768px) and (min-width: 576px) {
   .title-text{
     font-size: 45px;
   }
@@ -208,8 +219,8 @@ body {
   padding: 10px 15px;         /* Add padding to the links */
   margin: 0 5px;              /* Space between links */
   width: 30%;
-  height: 70px;
-  font-size: 50px;
+  height: 15vh;
+  font-size: 5vh;
   text-decoration: none;       /* Remove underline */
   background-color: #464646;  /* Background color for links */
   color: white;                /* Text color */

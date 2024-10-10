@@ -42,7 +42,7 @@ headers = {
 @app.route("/")
 def SkyViewer():
     # Start caching asynchronously in a separate thread
-    threading.Thread(target=cache_default).start()
+    # threading.Thread(target=cache_default).start()
     # Load startup page
     return render_template('startup.html')
 

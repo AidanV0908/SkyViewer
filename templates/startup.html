@@ -5,26 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/skyviewer.css') }}">
     <title>SkyViewer</title>
-    <script>
-        // When the user clicks on <div>, open the popup
-        function Popup() {
-          var popup = document.getElementById("myPopup");
-          popup.classList.toggle("show");
-        }
-    </script>
 </head>
-<body>
+<body onload="loadVersion()">
     <div class="bg-start">
         <div class="vignette">
 
                 <div class="title">
-                    <h1 class="title-text">SKYVIEWER v1.1.2</h1>
+                    <h1 id="title-text" class="title-text">SKYVIEWER vX.X.X</h1>
                     <h3 class="tagline-text">The Astronomer's Guide to the Sky</h3>
                 </div>
                 <div id="popupModal" class="modal">
                     <div class="modal-content" style="color:black; text-align: center;">
                         <span class="close">&times;</span>
                         <h2>SkyViewer Changelog</h2>
+                        <h4>Version 1.2.0</h4>
+                        <p>GROUND TRACKS!</p>
+                        <p>Period, launch year</p>
+                        <p>Changed default search term from empty string to ISS to save time loading</p>
                         <h4>Version 1.1.2</h4>
                         <p>Introduced caching for pages you've already loaded, reducing load times</p>
                         <p>Loading feedback on select satellite page</p>
@@ -67,5 +64,20 @@
         </div>
     </div>
 </body>
+<script>
+    // When the user clicks on <div>, open the popup
+    function Popup() {
+      var popup = document.getElementById("myPopup");
+      popup.classList.toggle("show");
+    }
+    // Load version info
+    async function loadVersion() {
+        const response = await fetch('/api/version');
+        const constants = await response.json();
+        
+        // Set the title with version
+        document.getElementById('title-text').innerText = `SKYVIEWER v${constants.version}`;
+    }
+</script>
 </html>
 

@@ -20,6 +20,10 @@
         p {
             text-indent: 15px;
         }
+        img{
+            width: 100%;
+            height: auto;
+        }
     </style>
 </head>
 <body>
@@ -38,31 +42,31 @@
             has gotten really good recently but do a verification check if it is a matter of life and death.
         </i></p>
         <p style="text-indent: 0">{{ai_exerpt}}</p>
+        <h3>Ground Track </h3>
+            <img src="{{ url_for('static',filename='images/GT.png') }}">
         <h3>TLE Epoch Data </h3>
             <p> Satellite Name: {{satelliteName}} </p>
             <p>Satellite ID: {{satelliteId}} </p>
             <p>Epoch: {{epoch}} </p>
             <p>Classification: {{classification}} </p>
             <p>Semi-Major Axis (km): {{sma / 1000}} </p>
+            <p>Period (h): {{period / (60*60)}} </p>
+            <p>Launch Year: {{launch_year}} </p>
             <p>Eccentricity: {{ecc}} </p>
             <p>Inclination (deg): {{inc}} </p>
             <p>Right Ascension of Ascending Node (deg): {{raan}} </p>
             <p>Argument of Periapsis (deg): {{argp}} </p>
         <h3>Observation Data </h3>
-            {% if is_obs %}
-                <p>Observation Date (Gregorian): {{date}} </p>
-                <p>Observation Date (Julian): {{ obs_time_jd }} </p>
-                <p>Observation Time (UTC {{timezone}}): {{time_tz}} </p>
-                <p>Observation Timezone: UTC {{timezone}} </p>
-                <p>Observation Time (UTC): {{ obs_time_utc }} </p>
-                <p>Observation Latitude (deg): {{ latitude }} </p>
-                <p>Observation Longitude (deg): {{ longitude }} </p>
-                <p>Distance (km): {{ distance }} </p>
-                <p>Azimuth (deg): {{ az }} </p>
-                <p>Elevation (deg): {{ alt }} </p>
-            {% else %}
-                <p><i>No observation time specified.</i></p>
-            {% endif %}
+            <p>Observation Date (Gregorian): {{date}} </p>
+            <p>Observation Date (Julian): {{ obs_time_jd }} </p>
+            <p>Observation Time (UTC {{timezone}}): {{time_tz}} </p>
+            <p>Observation Timezone: UTC {{timezone}} </p>
+            <p>Observation Time (UTC): {{ obs_time_utc }} </p>
+            <p>Observation Latitude (deg): {{ latitude }} </p>
+            <p>Observation Longitude (deg): {{ longitude }} </p>
+            <p>Distance (km): {{ distance }} </p>
+            <p>Azimuth (deg): {{ az }} </p>
+            <p>Elevation (deg): {{ alt }} </p>
         </div>
     <div style="text-align:center;">
         <button class="return" onclick="window.location.href='/'" style="padding-bottom: 10px">Return</a>

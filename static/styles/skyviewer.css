@@ -1,4 +1,4 @@
-.bg {
+.bg-start {
     position: absolute;
     top: 0;
     left: 0;
@@ -214,12 +214,9 @@ body {
 }
 
 .return-guide {
-  position: absolute;
-  bottom: 4%;
-  padding: 10px 15px;         /* Add padding to the links */
-  margin: 0 5px;              /* Space between links */
-  width: 30%;
-  height: 15vh;
+  justify-self: right;
+  margin-left: 5%;             /* Space between links */
+  width: 10%;
   font-size: 5vh;
   text-decoration: none;       /* Remove underline */
   background-color: #464646;  /* Background color for links */

@@ -14,7 +14,7 @@
     </script>
 </head>
 <body>
-    <div class="bg">
+    <div class="bg-start">
         <div class="vignette">
 
                 <div class="title">
@@ -25,6 +25,10 @@
                     <div class="modal-content" style="color:black; text-align: center;">
                         <span class="close">&times;</span>
                         <h2>SkyViewer Changelog</h2>
+                        <h4>Version 1.1.2</h4>
+                        <p>Introduced caching for pages you've already loaded, reducing load times</p>
+                        <p>Loading feedback on select satellite page</p>
+                        <p>Added content to help page</p>
                         <h4>Version 1.1.1</h4>
                         <p>Fixed mobile sizing issues for title screen</p>
                         <p>Increased contrast of select satellite button text against background</p>
@@ -44,13 +48,13 @@
                     
                     <table>
                         <tr>
-                            <th style="padding-bottom:2%"><button class="button-main", onclick="window.location.href='/sat-search'">Start</button></th>
+                            <th style="padding-bottom:2%"><button class="button-main" onclick="window.location.href = '/sat-search'">Start</button></th>
                         </tr>
                         <tr>
-                            <th style="padding-bottom:2%"><button class="button-main", id="openPopup">Changelog</button></th>
+                            <th style="padding-bottom:2%"><button class="button-main" id="openPopup">Changelog</button></th>
                         </tr>
                         <tr>
-                            <th><button class="button-main", onclick="window.location.href='/usage-guide'">Help</button></th>
+                            <th><button class="button-main" onclick="window.location.href='/usage-guide'">Help</button></th>
                         </tr>
                     </table>
                 </div>

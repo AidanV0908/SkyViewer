@@ -13,6 +13,8 @@ import openai
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from skyfield.api import utc
+from flask_caching import Cache;
+import threading;
 
 load_dotenv()
 
@@ -20,7 +22,10 @@ os.environ['OPENAI_API_KEY'] = os.getenv("OPENAI_API_KEY")
 openai.api_key = os.environ['OPENAI_API_KEY']
 NASA_API_KEY = os.environ['NASA_API_KEY']
 
+cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
+
 app = Flask(__name__)
+cache.init_app(app)
 
 # NASA API KEY
 #NASA_API_KEY = os.environ['NASA_API_KEY']
@@ -36,6 +41,9 @@ headers = {
 
 @app.route("/")
 def SkyViewer():
+    # Start caching asynchronously in a separate thread
+    threading.Thread(target=cache_default).start()
+    # Load startup page
     return render_template('startup.html')
 
 @app.route("/usage-guide")
@@ -44,54 +52,15 @@ def info():
 
 @app.route("/sat-search", methods=['GET', 'POST'])
 def search():
-    # Get the search term and page number from the URL
-    page = request.args.get('page', 1, type=int)  # Default to page 1 if not provided
-    search_term = request.args.get('search_term', '')  # Default to empty string if not provided
-    API_Code = 200
-
-    per_page = 20
-
-    if request.method == 'POST':
-        # Get the search term from the form
-        search_term = request.form['search_term']
+    # Set default values for search_term and page
+    search_term = request.form.get('search_term', '')  # Default to an empty string
+    page = request.form.get('page', 1, type=int)       # Default to page 1
 
     # Make an API request to fetch sorted results based on the search term
-    if (search_term != ''):
-        api_url = f"{API_URL}?search={search_term}&page={page}"
-        response = requests.get(api_url, headers=headers)
+    data = TLE(search_term, page)
 
-        if response.status_code == 200:
-            data = response.json()  # Assuming the API returns JSON data
-            members = data.get('member', [])  # Get the 'member' array from the response
-            total_results = data['totalItems']
-            pages = math.ceil(total_results / 20)
-        else:
-            members = []
-            total_results = 0
-            pages = 1
-            API_Code = response.status_code
-
-    else:
-        members = []
-        total_results = 0
-        pages = 1
-
-    # Determine if we need to show next/prev buttons
-    has_next = total_results > page * per_page
-    has_prev = page > 1
-
-    # pages
-    pages = math.ceil(total_results / 20)
-
-    return render_template('search.html',
-                           search_term=search_term,
-                           num_results = total_results,
-                           members = members,
-                           page = page,
-                           pages = pages,
-                           has_prev = has_prev,
-                           has_next = has_next,
-                           API_Code = API_Code)
+    # Run search with initial (empty search) TLE data
+    return render_template('search.html', **data)
 
 @app.route("/get-obs-info", methods=['POST'])
 def get_obs_info():
@@ -202,6 +171,19 @@ def get_results():
                     time_tz = time_tz,
                     is_obs = is_obs)
 
+# Endpoint so search function can update results
+@app.route("/api/sat-search", methods=['POST'])
+def update_search():
+    search_term = request.json.get('search_term', '')  # Get search term from JSON payload
+    page = request.json.get('page', 1)  # Default to page 1
+
+    # Call TLE to fetch the data
+    data = TLE(search_term, page)
+
+    # Return the data as JSON
+    return jsonify(data)
+
+
 # function that takes in string argument as parameter
 def comp(PROMPT):
     # using OpenAI's Completion module that helps execute
@@ -218,3 +200,54 @@ def comp(PROMPT):
     )
 
     return response
+
+# Get TLE info from API
+def TLE(search_term, page):
+    # Results per page (fixed at 20 by output of API)
+    per_page =  20
+
+    # Check if data is cached
+    cache_key = f"{search_term}_{page}"
+    
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return cached_data
+    
+    # Make an API request to fetch sorted results based on the search term
+    api_url = f"{API_URL}?search={search_term}&page={page}"
+    response = requests.get(api_url, headers=headers)
+
+    # Placeholder
+    members = []
+    total_results = 0
+    
+    # If successful, get data, 
+    if response.status_code == 200:
+        data = response.json()  # Assuming the API returns JSON data
+        members = data.get('member', [])  # Get the 'member' array from the response
+        total_results = data['totalItems']
+
+    # Determine if we need to show next/prev buttons
+    has_next = total_results > page * per_page
+    has_prev = page > 1
+
+    # pages
+    pages = math.ceil(total_results / 20)
+
+    data = { 
+            'search_term' : search_term,
+            'page' : page,
+            'members': members,
+            'total_results' : total_results,
+            'pages': pages,
+            'has_prev': has_prev,
+            'has_next': has_next,
+            'API_Code': response.status_code 
+            }
+    
+    cache.set(f"{search_term}_{page}", data, timeout=60 * 5)
+    return data
+
+# Function to cache default search
+def cache_default():
+    TLE('', 1)

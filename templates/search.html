@@ -66,6 +66,34 @@
             background-color: white; /* Even darker on click */
         }
 
+        /* Dark overlay */
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.5rem;
+            z-index: 1000;
+        }
+        .spinner {
+            border: 8px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 8px solid #3498db;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         /* Media Query for Larger Screens */
         @media (min-width: 768px) {
             .table-container {
@@ -84,7 +112,10 @@
         }
     </style>
 </head>
-<body>
+<body onload="updateSearchContent('', 1)">
+    <div id="loading-overlay" style="display:none;">
+        <div class="spinner"></div>
+    </div>
     <div class="progress-container">
         <div class="progress-bar">
             <div class="progress-step complete"></div>
@@ -97,51 +128,45 @@
         from the <a href="https://api.nasa.gov/">Two-Line Element (TLE) NASA API</a> to list the satellites most
         relevant to you. Use the search to filter results.</p>
     <hr>
-    <form action="/sat-search" method="POST">
+    <form action="/sat-search" method="POST" class="loadingForm" onsubmit="submitSearch(event)">
         <label for="search_term">Enter Search Term:</label>
+        <input type="hidden" id="page" name="page" value="1">
         <input type="text" id="search_term" name="search_term" value="{{ search_term }}">
         <input type="submit" value="Submit">
     </form>
 
-    <h3 style="margin-bottom: 1%;">Results</h3>
-    {% if API_Code == 200 %}
-        {% if members %}
-            <p style="margin-top: 0;"><i>{{num_results}} results found.</i></p>
-            <form action="/get-obs-info" method="POST">
-                <div class="table-container">
-                    <div class="header-row">
-                        <div class="cell">ID</div>
-                        <div class="cell">Name</div>
-                        <div class="cell"></div>
-                        <div class="hidden-cell">ID</div>
-                        <div class="hidden-cell">Name</div>
-                        <div class="hidden-cell"></div>
-                    </div>
-                    {% for member in members %}
-                        <div class="row">
-                            <div class="cell">{{ member['satelliteId'] }}</div>
-                            <div class="cell">{{ member['name'] }}</div>
-                            <div class="cell">
-                                <button class="submit-button" type="submit" name="selected_result" value="{{ member['satelliteId'] }}">Select</button>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            </form>
-            <div class="pagination">
-                {% if has_prev %}
-                    <a href="{{ url_for('search', page=page-1, search_term=search_term) }}" class="pagination-link">Prev</a>
-                {% endif %}
-                <p class="page-info">Page {{ page }} of {{ pages }}</p>
-                {% if has_next %}
-                    <a href="{{ url_for('search', page=page+1, search_term=search_term) }}" class="pagination-link">Next</a>
-                {% endif %}
-            </div>
-        {% else %}
-            <p><i>No results found yet. Have you entered a search term?</i></p>
-        {% endif %}
-    {% else %}
-        <p>Failure: API Code {{ API_Code }}</p>
-    {% endif %}
+    <h3 style="margin-bottom: 0; padding-bottom: 0;">Results</h3>
+    <!--Results section, dynamically populated by updateSearchContent when search term or page changed-->
+    <p id="api-status"></p>
+    <p id="num-results" style="margin-top: 0; padding-top: 0; margin-bottom: 10px;"><it>No results found.</it></p> <!-- Reduced gap by setting a smaller margin -->
+    
+    <div id="results-container"></div>
+    
+    <!-- Pagination info and controls aligned in a row -->
+    <div id="pagination-container" style="display: flex; align-items: center; gap: 10px; margin-top: 10px">
+        <button id="prev-button" class="pagination-link" style="display: none;">Previous</button> <!-- Initially hidden -->
+        <p id="page-info" class="page-info" style="margin: 0;">Page 1 of 1</p>
+        <button id="next-button" class="pagination-link" style="display: none;">Next</button> <!-- Initially hidden -->
+    </div>
 </body>
+
+<script src="{{ url_for('static',filename='javascript/updateSearchContent.js') }}"></script>
+
+
+<script>
+    function showLoading() {
+        document.getElementById('loading-overlay').style.display = 'flex';
+    }
+
+    function hideLoading() {
+        document.getElementById('loading-overlay').style.display = 'none';
+    }
+
+    function submitSearch(event) {
+        event.preventDefault(); // Prevent the page from refreshing
+        const searchTerm = document.getElementById('search_term').value;
+        updateSearchContent(searchTerm, 1); // Start at page 1
+    }
+</script>
+
 </html>

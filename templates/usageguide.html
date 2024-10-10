@@ -6,19 +6,70 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/skyviewer.css') }}">
     <title>Usage Guide</title>
     <style>
-        body {
+        body{
+            background-color: #f0f0f0;
+        }
+
+        .content {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            height: 100vh;
-            background-color: #f0f0f0;
+        }
+
+        p {
+            margin-left: 10%;
+            margin-right: 10%;
+        }
+        img{
+            width: 50%;
+            height: auto;
         }
     </style>
 </head>
 <body>
-    <h1>How to Use SkyViewer</h1>
-    <h3>Guide to SkyViewer coming soon!</h3>
-    <button class="return-guide" onclick="window.location.href='/'">Back</button>
+    <button class="return-guide" onclick="window.location.href='/'"> &lt; </button>
+    <div class="content">
+        <h1>How to Use SkyViewer</h1>
+        <p>
+            Welcome to SkyViewer! Skyviewer is a custom-built satellite tracking website I am building. I intend to use it as a platform to not only share satellite data,
+            but serve as an educational resource for beginners about concepts I found difficult, such as the countless amounts of frames defined by
+            convention in astrodynamics. It is currently in its infancy, so right now it does not stand out too much from other applications, but this will change fast now
+            that I have the barebones covered.
+        </p>
+        <p>
+            The website is simple to use. In order to get relevant information, two crucial pieces of information are required. The first is information about the satellite, 
+            and the second is information about the observer (you!). As a result, the first two pages after the title screen are where the application collects this data.
+        </p>
+        <p>
+            Upon clicking start, you will be met with a screen like the one below. The first thing to note is the progress bar. It indicates how close you are to obtaining your
+            data (1 on the image). I only have three pages, so it is not tedious. The second thing to note is the search bar (2). Upon loading, you will be shown all of the satellites
+            pulled from the NASA Two Line Elements (TLE) API, but if you have a certain satellite you are looking for, going through this list is sort of tedious, especially with the response
+            time limitaion of the API. If you search, the API is much faster and you can find the satellite you are looking for pretty quickly. Then, notice each entry (3). All entries are 
+            displayed with their NORAD IDs (identifying number for the API) and their name. If you want to conduct an analysis on a satellite, simply hit the submit button to its right.
+            Finally, there is the pagination tab. It tells you what page you are on, and previous and next buttons will also appear. The next button will not appear on the last page, nor the 
+            previous buttons on the first. All in all, this creates a pretty simple interface for selecting a satellite!
+        </p>
+        <img src="{{ url_for('static',filename='images/Page1.png') }}">
+        <p>
+            The next page is responsible for getting the observer data. There are two types of observer data here: positional and temporal. The program needs to know where you are and when in order
+            to compute the relative position between you and the satellite, as well as if you can see it or not. Then, it can tell you where exactly in the sky that satellite appears at! The two sets 
+            of data appear in their own boxes, (1) and (2). Temporal data includes the exact time and your time zone relative to UTC, and positional data includes your longitude and latitude. It's 
+            important to note that this data is pre-populated if you have location enabled, but you don't have to go with that if you want to, say, let your friend in another state know where the satellite 
+            is relative to them. The longitude and latitude used are geodetic, meaning the latitude line is perpendicular to the surface and not through the center of the Earth. This is what is provided by
+            Google Maps.
+        </p>
+        <img src="{{ url_for('static',filename='images/Page2.png') }}">
+        <p>
+            After submitting on this page, you finally get information on your satellite and its position relative to you! The general orbital information for the satellite from the TLE is listed under TLE Data,
+            and the position relative to you is under Observational Data. I am working on adding visual figures and new parameters now.
+        </p>
+        <img src="{{ url_for('static',filename='images/Page3.png') }}">
+        <p>
+            That's really all there is to it. I hope you find this program useful!
+        </p>
+        <p> - Aidan Velleca </p>
+    </div>
+    <button class="return-guide" onclick="window.location.href='/'"> &lt; </button>
 </body>
 </html>

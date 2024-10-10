@@ -1,0 +1,110 @@
+async function updateSearchContent(searchTerm, page = 1) {
+    try {
+        showLoading(); // Show loading spinner
+
+        // Fetch data from the API endpoint
+        const response = await fetch('/api/sat-search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ search_term: searchTerm, page: page })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            data.API_Code = 200; // Set success code for consistent handling
+            displaySearchResults(data); // Display the data on the page
+        } else {
+            displaySearchResults({ API_Code: response.status });
+        }
+    } catch (error) {
+        console.error('Fetch error:', error);
+        displaySearchResults({ API_Code: 'Error', message: 'An error occurred while fetching data.' });
+    } finally {
+        hideLoading(); // Hide loading spinner
+    }
+}
+
+function displaySearchResults(data) {
+    const resultsContainer = document.getElementById('results-container');
+    const apiStatusElement = document.getElementById('api-status');
+    const paginationContainer = document.getElementById('pagination-container');
+    const numResultsElement = document.getElementById('num-results');
+    const pageInfo = document.getElementById('page-info');
+    const nextButton = document.getElementById('next-button');
+    const prevButton = document.getElementById('prev-button');
+
+    resultsContainer.innerHTML = '';
+    paginationContainer.style.display = 'flex'; // Ensure pagination container is shown
+
+    if (data.API_Code === 200) {
+        apiStatusElement.textContent = '';
+
+        if (data.members && data.members.length > 0) {
+            numResultsElement.textContent = `${data.total_results} results found.`;
+
+            const form = document.createElement('form');
+            form.action = "/get-obs-info";
+            form.method = "POST";
+            const tableContainer = document.createElement('div');
+            tableContainer.className = 'table-container';
+
+            const headerRow = document.createElement('div');
+            headerRow.className = 'header-row';
+            headerRow.innerHTML = `
+                <div class="cell">ID</div>
+                <div class="cell">Name</div>
+                <div class="cell"></div>
+                <div class="hidden-cell">ID</div>
+                <div class="hidden-cell">Name</div>
+                <div class="hidden-cell"></div>`;
+            tableContainer.appendChild(headerRow);
+
+            data.members.forEach(member => {
+                const row = document.createElement('div');
+                row.className = 'row';
+
+                const idCell = document.createElement('div');
+                idCell.className = 'cell';
+                idCell.textContent = member.satelliteId;
+                row.appendChild(idCell);
+
+                const nameCell = document.createElement('div');
+                nameCell.className = 'cell';
+                nameCell.textContent = member.name;
+                row.appendChild(nameCell);
+
+                const buttonCell = document.createElement('div');
+                buttonCell.className = 'cell';
+                const button = document.createElement('button');
+                button.className = 'submit-button';
+                button.type = 'submit';
+                button.name = 'selected_result';
+                button.value = member.satelliteId;
+                button.textContent = 'Select';
+                buttonCell.appendChild(button);
+                row.appendChild(buttonCell);
+
+                tableContainer.appendChild(row);
+            });
+
+            form.appendChild(tableContainer);
+            resultsContainer.appendChild(form);
+
+            pageInfo.textContent = `Page ${data.page} of ${data.pages}`;
+
+            // Handle visibility of Prev and Next buttons
+            prevButton.style.display = data.page > 1 ? 'inline-block' : 'none';
+            nextButton.style.display = data.page < data.pages ? 'inline-block' : 'none';
+
+            // Set onclick actions for Prev and Next buttons
+            prevButton.onclick = () => updateSearchContent(data.search_term, data.page - 1);
+            nextButton.onclick = () => updateSearchContent(data.search_term, data.page + 1);
+        } else {
+            numResultsElement.textContent = 'No results found.';
+        }
+    } else {
+        apiStatusElement.textContent = `Failure: API Code ${data.API_Code}`;
+        numResultsElement.textContent = '';
+        paginationContainer.style.display = 'none'; // Hide pagination if there's an error
+    }
+}

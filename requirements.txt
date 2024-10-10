@@ -1,0 +1,9 @@
+Flask==3.0.3
+Flask_Caching==2.3.0
+matplotlib==3.9.2
+numpy==2.1.2
+openai==1.51.2
+python-dotenv==1.0.1
+Requests==2.32.3
+scipy==1.14.1
+skyfield==1.49

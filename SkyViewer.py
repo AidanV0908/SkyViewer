@@ -265,7 +265,7 @@ def get_sat_data(satelliteId, date, time, timezone, latitude, longitude):
         initial_cond = [sat_state.position.km[0], sat_state.position.km[1], sat_state.position.km[2], sat_state.velocity.km_per_s[0], sat_state.velocity.km_per_s[1], sat_state.velocity.km_per_s[2]]
         prop_data = propagate(initial_cond, (prop_time))
 
-        img_path = GroundTrack(epoch_JD, prop_data, name)
+        timestamp = GroundTrack(epoch_JD, prop_data, name)
     
     return {
         "satelliteName" : name,
@@ -289,7 +289,7 @@ def get_sat_data(satelliteId, date, time, timezone, latitude, longitude):
         "obs_time_utc" : obs_time_utc,
         "ecc" : ecc,
         "argp" : argp,
-        "img_path" : img_path,
+        "timestamp" : timestamp,
         "classification" : classification,
         "time_tz" : time_tz,
     }
@@ -348,10 +348,10 @@ def GroundTrack(epoch_JD, prop_data, name):
     plt.title(f'{name} Ground Track')
     plt.grid(True)
     timestamp = int(time.time())
-    path = os.path.join('images', f'GT?{ timestamp }.png')
-    plt.savefig(os.path.join('static', path))
+    path = os.path.join('static', 'images', 'GT.png')
+    plt.savefig(path)
     plt.close()
-    return path
+    return timestamp
 
 # Updated M_ECI_to_ECEF function with improved sidereal time calculation
 def M_ECI_to_ECEF(t_JD):

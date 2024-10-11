@@ -1,3 +1,4 @@
 .env
 /.venv/
 __pycache__/SkyViewer.cpython-312.pyc
+static/images/GT.png

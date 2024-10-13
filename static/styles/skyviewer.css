@@ -245,3 +245,125 @@ body {
   background-color: #777777;  /* Darker background on hover */
 }
 
+.submit-button {
+  text-align: center; /* Center text */
+  padding: 0px; /* Add padding for cells */
+  background-color: #f5f5dc;
+  color: black;
+  border: 2px solid black;
+  border-radius: 0%;
+  width: 50%;
+  height: 30px;
+  cursor: pointer; /* Pointer cursor on hover */
+}
+
+.submit-button:hover {
+  background-color: #f8f8dc; /* Lighter on hover */
+  transform: scale(1.05); /* Slightly enlarge */
+  transition: background-color 0.3s, transform 0.3s; /* Smooth transition */
+}
+
+.submit-button:active {
+  background-color: white; /* Even darker on click */
+}
+
+/* Dark overlay */
+#loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 1.5rem;
+  z-index: 1000;
+}
+.spinner {
+  border: 8px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 8px solid #3498db;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+#errorBox {
+  display: none;
+  color: red;
+  border: 1px solid red;
+  padding: 10px;
+  margin-top: 0px;
+  margin-bottom: 2%;
+}
+
+#warningBox {
+  display: none;
+  color: yellow;
+  border: 1px solid yellow;
+  padding: 10px;
+  margin-top: 0px;
+  margin-bottom: 2%;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  display: none; /* Hidden initially */
+}
+
+.popup {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  width: 300px;
+  font-family: Arial, sans-serif;
+}
+
+.popup h1 {
+  color: #000;
+  font-size: 24px;
+  margin: 0;
+}
+
+.popup p {
+  color: #666;
+  margin: 10px 0 20px;
+  font-size: 16px;
+}
+
+.popup button {
+  font-size: 16px;
+  padding: 10px 20px;
+  margin: 0 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn-yes {
+  background-color: #66FF66;
+  color: #000;
+}
+
+.btn-no {
+  background-color: #FF6666;
+  color: #fff;
+}

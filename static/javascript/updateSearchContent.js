@@ -3,7 +3,7 @@ async function updateSearchContent(searchTerm, page = 1) {
         showLoading(); // Show loading spinner
 
         // Fetch data from the API endpoint
-        const response = await fetch('/api/sat-search', {
+        const response = await fetch('/refresh-search', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ search_term: searchTerm, page: page })
@@ -26,6 +26,8 @@ async function updateSearchContent(searchTerm, page = 1) {
 
 function displaySearchResults(data) {
     const resultsContainer = document.getElementById('results-container');
+    const searchBox = document.getElementById('search_term');
+    const errorBox = document.getElementById('errorBox');
     const apiStatusElement = document.getElementById('api-status');
     const paginationContainer = document.getElementById('pagination-container');
     const numResultsElement = document.getElementById('num-results');
@@ -34,6 +36,7 @@ function displaySearchResults(data) {
     const prevButton = document.getElementById('prev-button');
 
     resultsContainer.innerHTML = '';
+    searchBox.value = "";
     paginationContainer.style.display = 'flex'; // Ensure pagination container is shown
 
     if (data.API_Code === 200) {
@@ -41,10 +44,8 @@ function displaySearchResults(data) {
 
         if (data.members && data.members.length > 0) {
             numResultsElement.textContent = `${data.total_results} results found.`;
+            errorBox.display = 'none';
 
-            const form = document.createElement('form');
-            form.action = "/get-obs-info";
-            form.method = "POST";
             const tableContainer = document.createElement('div');
             tableContainer.className = 'table-container';
 
@@ -79,16 +80,19 @@ function displaySearchResults(data) {
                 button.className = 'submit-button';
                 button.type = 'submit';
                 button.name = 'selected_result';
+                button.id = 'selected_result';
                 button.value = member.satelliteId;
                 button.textContent = 'Select';
+                button.onclick = function(event) {
+                    return verifySatellite(event);
+                };
                 buttonCell.appendChild(button);
                 row.appendChild(buttonCell);
 
                 tableContainer.appendChild(row);
             });
 
-            form.appendChild(tableContainer);
-            resultsContainer.appendChild(form);
+            resultsContainer.appendChild(tableContainer);
 
             pageInfo.textContent = `Page ${data.page} of ${data.pages}`;
 
@@ -107,4 +111,27 @@ function displaySearchResults(data) {
         numResultsElement.textContent = '';
         paginationContainer.style.display = 'none'; // Hide pagination if there's an error
     }
+}
+
+function showLoading() {
+    document.getElementById('loading-overlay').style.display = 'flex';
+}
+
+function hideLoading() {
+    document.getElementById('loading-overlay').style.display = 'none';
+}
+
+function submitSearch(event) {
+    event.preventDefault(); // Prevent the page from refreshing
+    const searchTerm = document.getElementById('search_term').value;
+    updateSearchContent(searchTerm, 1); // Start at page 1
+}
+
+// Load version info
+async function setMaxProp() {
+    const response = await fetch('/prop-time');
+    const constants = await response.json();
+    
+    // Set the title with version
+    document.getElementById('warning-text').innerText = `TLE is older than ${constants.maxprop} days, so real-time propagation is disabled for this satellite. Continue?`;
 }

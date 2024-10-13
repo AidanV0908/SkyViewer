@@ -18,6 +18,14 @@
                     <div class="modal-content" style="color:black; text-align: center;">
                         <span class="close">&times;</span>
                         <h2>SkyViewer Changelog</h2>
+                        <h4>Version 1.3.0</h4>
+                        <p>Dynamic generation of ground tracks</p>
+                        <p>Re-organization of the results page</p>
+                        <p>In sun, next pass calculations</p>
+                        <p>Removed observations page</p>
+                        <p>Propagation restrictions to ensure accurate results</p>
+                        <p>Re-wrote help page</p>
+                        <p>Added info page about propagation restricitons</p>
                         <h4>Version 1.2.0</h4>
                         <p>GROUND TRACKS!</p>
                         <p>Period, launch year</p>
@@ -66,20 +74,5 @@
         </div>
     </div>
 </body>
-<script>
-    // When the user clicks on <div>, open the popup
-    function Popup() {
-      var popup = document.getElementById("myPopup");
-      popup.classList.toggle("show");
-    }
-    // Load version info
-    async function loadVersion() {
-        const response = await fetch('/api/version');
-        const constants = await response.json();
-        
-        // Set the title with version
-        document.getElementById('title-text').innerText = `SKYVIEWER v${constants.version}`;
-    }
-</script>
 </html>
 

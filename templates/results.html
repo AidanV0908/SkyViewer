@@ -3,73 +3,262 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/skyviewer.css') }}">
-    <title>Display Results</title>
+    <title>Satellite Observation Results</title>
     <style>
-        body {
-            
+        /* General Layout */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body, html {
+            font-family: Arial, sans-serif;
+            width: 100%;
+            height: 100%;
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            height: 100vh;
+            justify-content: center;
+            align-items: flex-start;
+            background-color: #f5f5f5;
+        }
+        .container {
+            width: 100%;
+            /*max-width: 1200px;*/
+            padding: 20px;
             background-color: #f0f0f0;
-            
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .description {
+            text-align: center;
+            color: #555;
+            margin-bottom: 20px;
         }
 
-        p {
-            text-indent: 15px;
+        /* Section Headers */
+        .section-header {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 5px;
+            color: #333;
         }
-        img{
+
+        /* Grid Layouts */
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-top: 10px;
+            gap: 20px;
+        }
+        .col-left {
+            flex: 1 1 60%;
+        }
+        .col-right {
+            flex: 1 1 35%;
+        }
+
+        /* Forms and Input Fields */
+        .form-group {
+            margin-bottom: 1em;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 0.3em;
+        }
+        input[type="text"], input[type="number"], button {
             width: 100%;
+            padding: 8px;
+            font-size: 0.9rem;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .time-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .time-input-group input[type="number"] {
+            width: 50px;
+        }
+
+        /* Color Picker Preview */
+        .color-picker {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .color-input {
+            width: 40px;
+            height: 30px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 0;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        .color-input::-webkit-color-swatch {
+            border-radius: 4px;
+        }
+        .color-input-label {
+            flex-grow: 1;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+            padding: 8px 12px;
+            font-size: 1rem;
+            text-decoration: none;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        /* Center Text and Image */
+        .text-center {
+            text-align: center;
+        }
+        img {
+            max-width: 100%;
             height: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
     </style>
 </head>
 <body>
-    <div class="progress-container">
-        <div class="progress-bar">
-            <div class="progress-step complete"></div>
-            <div class="progress-step complete"></div>
-            <div class="progress-step complete"></div>
+    <div class="container">
+        <!-- Title Section -->
+        <h1>Results for {name}</h1>
+        <div class="section-header">Description (AI Generated)</div>
+        <p class="description">{name} is ...</p>
+
+        <!-- Observation Information Section -->
+        <div class="section-header">Observation Information</div>
+        <p>To keep data meaningful, propagation is limited to {days} days from epoch. <a href="#">Learn more.</a></p>
+
+        <div class="row">
+            <div class="col-left">
+                <!-- Ground Track Image -->
+                <h5 class="text-center">Ground Track</h5>
+                <img src="{ground_track_image_url}" alt="Ground Track">
+            </div>
+            <div class="col-right">
+                <!-- Propagation Info Form -->
+                <h5>Propagation Info</h5>
+                <form>
+                    <div class="form-group">
+                        <label for="startDate">Start Date:</label>
+                        <p>{epoch}</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="stopDate">Stop Date:</label>
+                        <input type="text" id="stopDate" placeholder="mm/dd/yyyy">
+                    </div>
+                    <div class="form-group">
+                        <label for="stopTime">Stop Time:</label>
+                        <div class="time-input-group">
+                            <input type="text" id="stopTime" placeholder="hh:mm:ss">
+                            <span>UTC</span>
+                            <input type="number" id="utcOffset" placeholder="0" min="-12" max="14" step="1">
+                        </div>
+                    </div>
+
+                    <h6>Display Colors</h6>
+                    <div class="form-group color-picker">
+                        <label for="pathColor" class="color-input-label">Path:</label>
+                        <input type="color" id="pathColor" class="color-input" value="#00ff00">
+                    </div>
+                    <div class="form-group color-picker">
+                        <label for="observerColor" class="color-input-label">Observer:</label>
+                        <input type="color" id="observerColor" class="color-input" value="#0000ff">
+                    </div>
+                    <div class="form-group color-picker">
+                        <label for="epochColor" class="color-input-label">Epoch:</label>
+                        <input type="color" id="epochColor" class="color-input" value="#ff0000">
+                    </div>
+                    <div class="form-group color-picker">
+                        <label for="stopColor" class="color-input-label">Stop:</label>
+                        <input type="color" id="stopColor" class="color-input" value="#ffff00">
+                    </div>
+
+                    <button type="button" class="btn">Save Plot</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Next Pass Section -->
+        <div class="section-header">Next Pass</div>
+        <div class="form-group">
+            <label for="minElevation">Minimum Pass Elevation:</label>
+            <input type="number" id="minElevation" placeholder="0" min="0" max="90" step="1" style="width: 30%"> degrees
+        </div>
+        <p>{name} will rise above -- degrees next at {next_pass_time} UTC on {next_pass_date}. It will set at {next_set_time} UTC on {next_set_date}.</p>
+
+        <!-- In Sun Section -->
+        <div class="section-header">In Sun</div>
+        <form>
+            <div class="form-group">
+                <label for="sunDate">Date:</label>
+                <input type="text" id="sunDate" placeholder="mm/dd/yyyy">
+            </div>
+            <div class="time-input-group">
+                <input type="text" id="stopTime" placeholder="hh:mm:ss">
+                <span>UTC</span>
+                <input type="number" id="utcOffset" placeholder="0" min="-12" max="14" step="1">
+            </div>
+        </form>
+        <p>On {sun_date} at {sun_time} UTC, {name} will be {in_or_out_of_sun}</p>
+
+        <!-- General Information Section -->
+        <div class="section-header">General Information</div>
+        <h6>Basic</h6>
+        <ul>
+            <li>ID: {satellite_id}</li>
+            <li>Launch Year: {launch_year}</li>
+            <li>Classification: {classification}</li>
+            <li>Epoch: {epoch}</li>
+            <li>Period: {period} hours</li>
+        </ul>
+        
+        <h6>Orbital Elements</h6>
+        <ul>
+            <li>Semi-Major Axis: {sma} km</li>
+            <li>Eccentricity: {eccentricity}</li>
+            <li>Eccentricity Vector: [{ex}, {ey}, {ez}]</li>
+            <li>Inclination: {inc} degrees</li>
+            <li>Right Ascension of the Ascending Node: {RAAN} degrees</li>
+            <li>Argument of Periapsis: {argp} degrees</li>
+        </ul>
+
+        <!-- Return Button -->
+        <div class="text-center" style="margin-top: 20px;">
+            <button type="button" class="btn btn-secondary" onclick="window.history.back();">Return</button>
         </div>
     </div>
-    <h1 style="margin-bottom:0; margin-left: 10%; margin-right: 10%;">View Results for {{satelliteName}} </h1>
-    <p style="margin-bottom:0; margin-left: 10%; margin-right: 10%;">Your results have been generated below!</p>
-    <div class="results">
-        <h3>AI Exerpt: </h3>
-        <p style="text-indent: 0"><i>Disclaimer: The AI Exerpt is a thing I added for fun, and it may not be accurate all of the time. Do not take this as an absolute truth. The AI
-            has gotten really good recently but do a verification check if it is a matter of life and death.
-        </i></p>
-        <p style="text-indent: 0">{{ai_exerpt}}</p>
-        <h3>Ground Track </h3>
-            <img src="/static/images/GT.png?{{ timestamp }}" alt="Ground Track">
-        <h3>TLE Epoch Data </h3>
-            <p> Satellite Name: {{satelliteName}} </p>
-            <p>Satellite ID: {{satelliteId}} </p>
-            <p>Epoch: {{epoch}} </p>
-            <p>Classification: {{classification}} </p>
-            <p>Semi-Major Axis (km): {{sma / 1000}} </p>
-            <p>Period (h): {{period / (60*60)}} </p>
-            <p>Launch Year: {{launch_year}} </p>
-            <p>Eccentricity: {{ecc}} </p>
-            <p>Inclination (deg): {{inc}} </p>
-            <p>Right Ascension of Ascending Node (deg): {{raan}} </p>
-            <p>Argument of Periapsis (deg): {{argp}} </p>
-        <h3>Observation Data </h3>
-            <p>Observation Date (Gregorian): {{date}} </p>
-            <p>Observation Date (Julian): {{ obs_time_jd }} </p>
-            <p>Observation Time (UTC {{timezone}}): {{time_tz}} </p>
-            <p>Observation Timezone: UTC {{timezone}} </p>
-            <p>Observation Time (UTC): {{ obs_time_utc }} </p>
-            <p>Observation Latitude (deg): {{ latitude }} </p>
-            <p>Observation Longitude (deg): {{ longitude }} </p>
-            <p>Distance (km): {{ distance }} </p>
-            <p>Azimuth (deg): {{ az }} </p>
-            <p>Elevation (deg): {{ alt }} </p>
-        </div>
-    <div style="text-align:center;">
-        <button class="return" onclick="window.location.href='/'" style="padding-bottom: 10px">Return</a>
-    </div>   
 </body>
 </html>

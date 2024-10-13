@@ -16,3 +16,18 @@ btn.onclick = function() {
 span.onclick = function() {
     modal.style.display = "none";
 }
+
+// When the user clicks on <div>, open the popup
+function Popup() {
+    var popup = document.getElementById("myPopup");
+    popup.classList.toggle("show");
+}
+
+// Load version info
+async function loadVersion() {
+    const response = await fetch('/api/version');
+    const constants = await response.json();
+    
+    // Set the title with version
+    document.getElementById('title-text').innerText = `SKYVIEWER v${constants.version}`;
+}

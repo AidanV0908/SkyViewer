@@ -44,56 +44,6 @@
             padding: 0px; /* Add padding for cells */
         }
 
-        .submit-button {
-            text-align: center; /* Center text */
-            padding: 0px; /* Add padding for cells */
-            background-color: #f5f5dc;
-            color: black;
-            border: 2px solid black;
-            border-radius: 0%;
-            width: 50%;
-            height: 30px;
-            cursor: pointer; /* Pointer cursor on hover */
-        }
-
-        .submit-button:hover {
-            background-color: #f8f8dc; /* Lighter on hover */
-            transform: scale(1.05); /* Slightly enlarge */
-            transition: background-color 0.3s, transform 0.3s; /* Smooth transition */
-        }
-
-        .submit-button:active {
-            background-color: white; /* Even darker on click */
-        }
-
-        /* Dark overlay */
-        #loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-size: 1.5rem;
-            z-index: 1000;
-        }
-        .spinner {
-            border: 8px solid #f3f3f3;
-            border-radius: 50%;
-            border-top: 8px solid #3498db;
-            width: 60px;
-            height: 60px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         /* Media Query for Larger Screens */
         @media (min-width: 768px) {
             .table-container {
@@ -112,10 +62,11 @@
         }
     </style>
 </head>
-<body onload="updateSearchContent('ISS', 1)">
+<body onload="onLoadFunctions()">
     <div id="loading-overlay" style="display:none;">
         <div class="spinner"></div>
     </div>
+    <!--
     <div class="progress-container">
         <div class="progress-bar">
             <div class="progress-step complete"></div>
@@ -123,15 +74,26 @@
             <div class="progress-step incomplete"></div>
         </div>
     </div>
-    <h1 style="margin-bottom:0; margin-left: 10%; margin-right: 10%;">Step 1: Search for your Satellite</h1>
+    -->
+    <h1 style="margin-bottom:0; margin-left: 10%; margin-right: 10%;">Select Satellite</h1>
     <p style="margin-left: 10%; margin-right: 10%;">The first step for using SkyViewer is to select your satellite. After you search, API data is pulled 
         from the <a href="https://api.nasa.gov/">Two-Line Element (TLE) NASA API</a> to list the satellites most
         relevant to you. Use the search to filter results.</p>
     <hr>
+    <div class="overlay" id="warningPopup">
+        <div class="popup">
+            <h1>⚠️ WARNING ⚠️</h1>
+            <p id="warning-text">TLE is older than XX days, so real-time propagation is disabled for this satellite. Continue?</p>
+            <button class="btn-yes" id="btn-yes">YES</button>
+            <button class="btn-no" id="btn-no">NO</button>
+        </div>
+    </div>
+
+    <div id="errorBox">Something went wrong. Please try again.</div>
     <form action="/sat-search" method="POST" class="loadingForm" onsubmit="submitSearch(event)">
         <label for="search_term">Enter Search Term:</label>
         <input type="hidden" id="page" name="page" value="1">
-        <input type="text" id="search_term" name="search_term" value="{{ search_term }}">
+        <input type="text" id="search_term" name="search_term" value="">
         <input type="submit" value="Submit">
     </form>
 
@@ -150,23 +112,14 @@
     </div>
 </body>
 
+<script src="{{ url_for('static',filename='javascript/verifySatellite.js') }}"></script>
 <script src="{{ url_for('static',filename='javascript/updateSearchContent.js') }}"></script>
-
-
 <script>
-    function showLoading() {
-        document.getElementById('loading-overlay').style.display = 'flex';
+    function onLoadFunctions() {
+        updateSearchContent('ISS', 1);
+        setMaxProp();
     }
-
-    function hideLoading() {
-        document.getElementById('loading-overlay').style.display = 'none';
-    }
-
-    function submitSearch(event) {
-        event.preventDefault(); // Prevent the page from refreshing
-        const searchTerm = document.getElementById('search_term').value;
-        updateSearchContent(searchTerm, 1); // Start at page 1
-    }
+</script>
 </script>
 
 </html>

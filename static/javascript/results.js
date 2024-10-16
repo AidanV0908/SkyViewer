@@ -144,7 +144,6 @@ function setCurrentLocation() {
                 function(position) {
                     latitudeInput.value = position.coords.latitude.toFixed(6);
                     longitudeInput.value = position.coords.longitude.toFixed(6);
-                    genButton.disabled = false;
                     latitudeInput.disabled = true;
                     longitudeInput.disabled = true;
                     findNextPass();
@@ -152,7 +151,6 @@ function setCurrentLocation() {
                 },
                 function() {
                     checkbox.checked = false;
-                    genButton.disabled = false;
                     errorText.style.display = "block";
                     errorText.textContent = "Could not retrieve location. Make sure location services are enabled.";
                     findNextPass();
@@ -176,9 +174,9 @@ function setCurrentLocation() {
         latitudeInput.value = "";
         longitudeInput.value = "";
         loadText.style.display = "none";
-        genButton.disabled = false;
         findNextPass();
     }
+    genButton.disabled = false;
 }
 
 // Validate inputs for latitude and longitude

@@ -22,6 +22,7 @@ async function loadGroundTrack() {
     if (startAtVal == "current") {
         date_unv = getCurrentDate();
         time_unv = getCurrentTime();
+        tz = tzOffset();
     } else if (startAtVal == "other") {
         date_unv = document.getElementById("otherDate").value;
         time_unv = convertToFullTime(document.getElementById("otherTime").value);

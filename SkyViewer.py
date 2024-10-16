@@ -174,6 +174,8 @@ def generate_ground_track():
         utc_offset = timezone(timedelta(hours=utc_offset_hours))
         refTime = refTime.replace(tzinfo = utc_offset)
         refTime = refTime.astimezone(timezone.utc)
+        
+        print(refTime)
 
         # Get start and end times
         startTime = stopTime = refTime
@@ -204,6 +206,8 @@ def generate_ground_track():
         # Get latitude and longitude of refTime
         refTime_t = ts.from_datetime(refTime)
         lat_ref, long_ref = wgs84.latlon_of(satellite.at(refTime_t))
+
+        print(f"({lat_ref.degrees}, {long_ref.degrees})")
 
         # Prepare data for JSON response
         response_data = {

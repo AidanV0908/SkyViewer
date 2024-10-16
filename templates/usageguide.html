@@ -15,61 +15,77 @@
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
+            padding: 0 5% 0 5%;
         }
 
         p {
             margin-left: 10%;
             margin-right: 10%;
         }
+        ul {
+            margin-left: 12%;
+            margin-right: 10%;
+        }
         img{
-            width: 100%;
+            width: 70%;
             height: auto;
+            border: 2px solid #333; /* Visible border for images */
+            margin: 15px 0; /* Add spacing around images */
         }
     </style>
 </head>
 <body>
-    <button class="return-guide" onclick="window.location.href='/'"> &lt; </button>
     <div class="content">
         <h1>How to Use SkyViewer</h1>
         <p>
             Welcome to SkyViewer! Skyviewer is a custom-built satellite tracking website I am building. I intend to use it as a platform to not only share satellite data,
             but serve as an educational resource for beginners about concepts I found difficult, such as the countless amounts of frames defined by
-            convention in astrodynamics. It is currently in its infancy, so right now it does not stand out too much from other applications, but this will change fast now
-            that I have the barebones covered.
+            convention in astrodynamics.
         </p>
         <p>
-            The website is simple to use. In order to get relevant information, two crucial pieces of information are required. The first is information about the satellite, 
-            and the second is information about the observer (you!). As a result, the first two pages after the title screen are where the application collects this data.
+            Your first step will be choosing which satellite you want to gather information on. All of the information is collected from the NASA two-line element API. Two line elements are basically
+            just a format for sharing satellite observations in, well, two lines. The initial search is "ISS", and you can search for any satellite you'd like and get matching results. Submitting an empty
+            search will return all the satellites in the database, but this is not recommended, unless you like to wait. The more broad the search, the longer it will take the API to return the results. To proceed
+            from this page, click the select button next to your satellite of your choice to get to its results page.
         </p>
         <p>
-            Upon clicking start, you will be met with a screen like the one below. The first thing to note is the progress bar. It indicates how close you are to obtaining your
-            data (1 on the image). I only have three pages, so it is not tedious. The second thing to note is the search bar (2). Upon loading, you will be shown all of the satellites
-            pulled from the NASA Two Line Elements (TLE) API, but if you have a certain satellite you are looking for, going through this list is sort of tedious, especially with the response
-            time limitaion of the API. If you search, the API is much faster and you can find the satellite you are looking for pretty quickly. Then, notice each entry (3). All entries are 
-            displayed with their NORAD IDs (identifying number for the API) and their name. If you want to conduct an analysis on a satellite, simply hit the submit button to its right.
-            Finally, there is the pagination tab. It tells you what page you are on, and previous and next buttons will also appear. The next button will not appear on the last page, nor the 
-            previous buttons on the first. All in all, this creates a pretty simple interface for selecting a satellite!
+            Once you select a satellite with its select button, you will be taken to the results page. This is the page where you can see all of the information about a satellite! The first section is general information,
+            and contains unpacked TLE data you are welcome to browse through. However, the most exciting part is below. This contains information that may be relevant to you, such as a ground track, next passes above a certain
+            altitude, and if the satellite is sunlit.
         </p>
-        <img src="{{ url_for('static',filename='images/Page1.png') }}">
+        <img src="{{ url_for('static',filename='images/ground_track.png') }}">
         <p>
-            The next page is responsible for getting the observer data. There are two types of observer data here: positional and temporal. The program needs to know where you are and when in order
-            to compute the relative position between you and the satellite, as well as if you can see it or not. Then, it can tell you where exactly in the sky that satellite appears at! The two sets 
-            of data appear in their own boxes, (1) and (2). Temporal data includes the exact time and your time zone relative to UTC, and positional data includes your longitude and latitude. It's 
-            important to note that this data is pre-populated if you have location enabled, but you don't have to go with that if you want to, say, let your friend in another state know where the satellite 
-            is relative to them. The longitude and latitude used are geodetic, meaning the latitude line is perpendicular to the surface and not through the center of the Earth. This is what is provided by
-            Google Maps.
+            This image shows the first section of the results page where you can enter data. We have some pretty important fields here.
         </p>
-        <img src="{{ url_for('static',filename='images/Page2.png') }}">
+        <ul>
+            <li>Time Zone (1): This is where you can enter whatever time zone (UTC offset) you want to use in the program. This is considered the "reference time zone," since this is the time zone that is used throughout the
+                entire page. If you check "set current," it will use the current system time zone. Enabled by default.</li>
+            <li>Latitude and Longitude (2): This is where you can enter whatever latitude and longitude you want to use in the program. This is considered the "reference location," since this is where the user is assumed to be throughout the
+                entire page. If you have location enabled, you can use the "set current" button to use your current location. Enabled by default.</li>
+            <li>Ground Track Settings (3): This is where you can modify how the ground track appears. The ground track will use your current location and time zone. The start at dropdown determines what the reference time is for the satellite.
+                A green dot will show up on the ground track to show where the satellite is at that time. The periods slider will determine how many periods to plot on the ground track. The direction field will determine which direction to show the 
+                ground track. If you select "forward," you will see the ground track however many periods specified after the reference time. If you select "backward," you will see before the reference time. "Bidirectional" will plot half the periods
+                before and half the periods after. Finally, if you make changes, you will, at least for now, have to click "Generate Plot" to refresh the ground track. I know, I know, I'm working on live refresh. "Save Plot" will save the plot to your browser.
+            </li>
+            <li>
+                Ground Track Plot (4): This window, generated by Plotly, shows the ground track. Settings at the top allow you to adjust the map.
+            </li>
+        </ul>
+        <img src="{{ url_for('static',filename='images/next_pass_in_sun.png') }}" style="width: 70%">
         <p>
-            After submitting on this page, you finally get information on your satellite and its position relative to you! The general orbital information for the satellite from the TLE is listed under TLE Data,
-            and the position relative to you is under Observational Data. I am working on adding visual figures and new parameters now.
+            Below the ground track is the next pass and in sun sections. Next pass only appears if the satellite can be propagated to the current time without exceeding propagation limits.
         </p>
-        <img src="{{ url_for('static',filename='images/Page3.png') }}">
-        <p>
-            That's really all there is to it. I hope you find this program useful!
-        </p>
-        <p> - Aidan Velleca </p>
+        <ul>
+            <li>Next Pass Minimum Elevation (1): This allows you to specify the minimum elevation you want to find when looking for the next pass. Zero by default.</li>
+            <li>Output for Next Passes (2): This shows you the times where the satellite will rise above and set below the elevation you set, as well as when it reaches the maximum elevation. Shows all passes within 24 hours, set in your reference time zone.</li>
+            <li>Input for Sunlit Status (3): Enter the date and time you'd like to see if the satellite is in sun for here.
+            </li>
+            <li>
+                Submit and Output (4): After selecting "Submit," text will display showing the sunlit status at your selected time.
+            </li>
+        </ul>
+        <p> This should be all you need to know to get started. Enjoy Skyviewer!</p>
     </div>
-    <button class="return-guide" onclick="window.location.href='/'"> &lt; </button>
+    <button id="returnButton" onclick="window.location.href='/'"> &lt; </button>
 </body>
 </html>

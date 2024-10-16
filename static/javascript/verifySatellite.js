@@ -9,7 +9,7 @@ async function verifySatellite(event) {
 
     try {
         // Make the API call with the selected item
-        const response = await fetch('/add-satellite-to-cache', {
+        const response = await fetch('/epoch-data', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ "ID": id })
@@ -22,7 +22,7 @@ async function verifySatellite(event) {
             const proptime = data.maxprop;
 
             yesBtn.onclick = () => continueAction(id);
-            noBtn.onclick = () => closePopup(id);
+            noBtn.onclick = () => closePopup();
 
             // Check if the TLE is stale (greater than 30 days)
             if (daysSinceEpoch > proptime) {
@@ -47,21 +47,7 @@ function showWarningPopup() {
     document.getElementById("warningPopup").style.display = "flex";
 }
 
-async function closePopup(id) {
-    if (id != -1) {
-        // Make the API call with the selected item
-        const response = await fetch('/remove-satellite-from-cache', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ "ID": id })
-        });
-
-        if (response.ok) {
-            console.log("Successfully removed from cache")
-        } else {
-            console.log("Removal failure")
-        }
-    }
+async function closePopup() {
     document.getElementById("warningPopup").style.display = "none";
 }
 

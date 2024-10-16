@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/skyviewer.css') }}">
     <title>Satellite Observation Results</title>
     <style>
         /* General Layout */
@@ -13,30 +14,32 @@
         }
         body, html {
             font-family: Arial, sans-serif;
-            width: 100%;
-            height: 100%;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
-            background-color: #f5f5f5;
-        }
-        .container {
             width: 100%;
-            /*max-width: 1200px;*/
-            padding: 20px;
             background-color: #f0f0f0;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         h1 {
             font-size: 2rem;
             text-align: center;
             margin-bottom: 10px;
         }
+        h5 {
+            font-size: 1rem;
+            margin-bottom: 3px;
+        }
+        label {
+            font-size: 0.75rem;
+            font-style:normal;
+        }
         .description {
             text-align: center;
             color: #555;
             margin-bottom: 20px;
+        }
+
+        .hiddentime {
+            display: flex;
         }
 
         /* Section Headers */
@@ -50,19 +53,19 @@
             color: #333;
         }
 
-        /* Grid Layouts */
+        /* Layout */
         .row {
             display: flex;
             flex-wrap: wrap;
-            justify-content: space-between;
-            margin-top: 10px;
             gap: 20px;
         }
         .col-left {
-            flex: 1 1 60%;
+            flex: 1 1 70%;
+            order: 1;
         }
         .col-right {
-            flex: 1 1 35%;
+            flex: 1 1 25%;
+            order: 2;
         }
 
         /* Forms and Input Fields */
@@ -74,7 +77,7 @@
             display: block;
             margin-bottom: 0.3em;
         }
-        input[type="text"], input[type="number"], button {
+        input[type="text"], input[type="date"], input[type="time"], select {
             width: 100%;
             padding: 8px;
             font-size: 0.9rem;
@@ -82,47 +85,25 @@
             border: 1px solid #ccc;
             border-radius: 4px;
         }
-        .time-input-group {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        .time-input-group input[type="number"] {
-            width: 50px;
-        }
-
-        /* Color Picker Preview */
-        .color-picker {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .color-input {
-            width: 40px;
-            height: 30px;
+        input[type="color"] {
+            width: 10%;
+            aspect-ratio: 1 / 1;
             border: 1px solid #ccc;
-            border-radius: 4px;
-            cursor: pointer;
-            padding: 0;
-            -webkit-appearance: none;
-            appearance: none;
         }
-        .color-input::-webkit-color-swatch {
-            border-radius: 4px;
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-top: 8px;
         }
-        .color-input-label {
-            flex-grow: 1;
+        p {
+            margin-bottom:8px;
         }
-
         /* Buttons */
         .btn {
-            display: inline-block;
             background-color: #007bff;
             color: white;
-            text-align: center;
             padding: 8px 12px;
             font-size: 1rem;
-            text-decoration: none;
             border-radius: 4px;
             cursor: pointer;
             border: none;
@@ -134,131 +115,190 @@
         .btn:hover {
             background-color: #0056b3;
         }
+        .btn:disabled {
+            background-color: #5a6268;
+        }
         .btn-secondary:hover {
             background-color: #5a6268;
         }
-
-        /* Center Text and Image */
         .text-center {
             text-align: center;
         }
-        img {
-            max-width: 100%;
-            height: auto;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .col-left, .col-right {
+                flex: 1 1 100%;
+                order: initial;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <input type="hidden" id="satId" value="{{satelliteId}}">
+    <input type="hidden" id="epochdate" value="{{epochdate}}">
+    <input type="hidden" id="epochtime" value="{{epochtime}}">
+    <div style="width: 80%; margin-top: 20px; margin-bottom: 20px;">
         <!-- Title Section -->
-        <h1>Results for {name}</h1>
+        <h1>Results for {{satelliteName}}</h1>
         <div class="section-header">Description (AI Generated)</div>
-        <p class="description">{name} is ...</p>
+        <p class="description">{{ai_exerpt}}</p>
+
+        <!-- General Information Section -->
+        <div class="section-header">General Information</div>
+        <h5>Basic</h5>
+        <div style="padding-left:3%">  
+        <p>ID: {{satelliteId}}</p>
+        <p>Launch Year: {{launch_year}}</p>
+        <p>Classification: {{classification}}</p>
+        <p>Epoch: {{epochdate}} @ {{epochtime}}</p>
+        <p>Period: {{period}} hours</p>
+        </div>
+
+        <h5>Orbital Elements</h5>
+        <div style="padding-left:3%">  
+        <p>Semi-Major Axis: {{sma}} km</p>
+        <p>Eccentricity: {{ecc}}</p>
+        <p>Inclination: {{inc}} degrees</p>
+        <p>Right Ascension of the Ascending Node: {{raan}} degrees</p>
+        <p>Argument of Periapsis: {{argp}} degrees</p>
+        </div>  
 
         <!-- Observation Information Section -->
         <div class="section-header">Observation Information</div>
-        <p>To keep data meaningful, propagation is limited to {days} days from epoch. <a href="#">Learn more.</a></p>
+        <p>To keep data meaningful, propagation is limited to {{maxprop}} days from epoch. <a href="/propagation-restrictions">Learn more.</a></p>
 
+        <div class="form-group">
+            <h5>Time Zone</h5>
+            <p>Reference time zone, applied to all time fields on this page. Select the box to use system time. If no time is selected, system will default to UTC.</p>
+            <p id="timezone-error" style="color:red; display:none;">Could not retrieve system time zone.</p>
+            <div class="row">
+                <label for="timezone">Time Zone:</label>
+                <select id="timezone" onchange = "findNextPass()" style="width:20%">
+                    <option value="">Select</option>
+                </select>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" id="use-system-time" onclick="setSystemTimeZone()"> Use Current</label>
+                </div>
+            </div>
+        </div>
+
+        <h5>Reference Location</h5>
+        <p>Enter a location, in terms of latitude and longitude, in degrees. Select the box to use your current location. If no value is selected, (0, 0) will be used by default. Please note this process could hang for a second, I am working on a fix for this.</p>
+        <p id="latlong-error" style="color:red; display:none;">ERROR</p>
         <div class="row">
+            <div class="form-group">
+                <label for="latitude">Latitude:</label>
+                <input type="text" id="latitude" onblur="validateLatLong()">
+            </div>
+            <div class="form-group">
+                <label for="longitude">Longitude:</label>
+                <input type="text" id="longitude" onblur="validateLatLong()">
+            </div>
+            <div class="checkbox-group">
+                <label><input type="checkbox" id="use-current-location" onclick="setCurrentLocation()"> Use Current</label>
+            </div>
+        </div>
+
+        <div class="section-header">Ground Track</div>
+        <div class="row">
+            <div class="col-right">
+                <!-- Plot Info and Display Colors -->
+                <h5>Settings</h5>
+                <div class="form-group">
+                    <label for="startAt">Start At:</label>
+                    <p id="warningtxt" style="display: none; color:#ffd000; font-size:smaller; font-weight:bold;">Stale TLE: 'Current' option disabled</p>
+                    <select id="startAt" onchange="updateOtherTimeField()">
+                        <option value="epoch">Epoch</option>
+                        <option value="current">Current</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="hiddentime" id="hiddentime">
+                    <div class="form-group">
+                        <label for="otherDate">Date:</label>
+                        <input type="date" id="otherDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="otherTime">Time:</label>
+                        <input type="time" id="otherTime">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <!-- Labels for min, max, and current value -->
+                    <label for="periods">Periods:</label>
+                    <span id="min-value">1</span>
+                    <input type="range" id="periods" min="1" max="10" value="1" oninput="updateSliderValue(this.value)">
+                    <span id="max-value">10</span>
+                    <span id="current-value" style="padding-left:5%; font-style:oblique; font-size:smaller"></span>    
+                </div>
+                <div class="form-group">
+                    <label for="direction">Direction:</label>
+                    <select id="direction">
+                        <option value="forward">Forward</option>
+                        <option value="backward">Backward</option>
+                        <option value="bidirectional">Bidirectional</option>
+                    </select>
+                </div>
+
+                <h5>Display Colors</h5>
+                <div style="padding-left:5%">
+                    <div class="form-group">
+                        <label for="pathColor">Path</label>
+                        <input type="color" id="pathColor" value="#0000ff">
+                    </div>
+                    <div class="form-group">
+                        <label for="observerColor">Observer</label>
+                        <input type="color" id="observerColor" value="#ff0000">
+                    </div>
+                    <div class="form-group">
+                        <label for="refTimeColor">Reference Time</label>
+                        <input type="color" id="refTimeColor" value="#00ff00">
+                    </div>
+                </div>
+                <p style="font-style:italic; padding-bottom: 3px; display:none" id="loadText">Please hold, initializing data...</p>
+                <button type="button" class="btn" id="generateButton" onclick="loadGroundTrack()" style="width:100%; margin-bottom: 10px;">Generate Plot</button>
+                <button type="button" class="btn" id='saveButton' style="width:100%" disabled>Save Plot</button>
+            </div>
             <div class="col-left">
                 <!-- Ground Track Image -->
-                <h5 class="text-center">Ground Track</h5>
-                <img src="{ground_track_image_url}" alt="Ground Track">
-            </div>
-            <div class="col-right">
-                <!-- Propagation Info Form -->
-                <h5>Propagation Info</h5>
-                <form>
-                    <div class="form-group">
-                        <label for="startDate">Start Date:</label>
-                        <p>{epoch}</p>
-                    </div>
-                    <div class="form-group">
-                        <label for="stopDate">Stop Date:</label>
-                        <input type="text" id="stopDate" placeholder="mm/dd/yyyy">
-                    </div>
-                    <div class="form-group">
-                        <label for="stopTime">Stop Time:</label>
-                        <div class="time-input-group">
-                            <input type="text" id="stopTime" placeholder="hh:mm:ss">
-                            <span>UTC</span>
-                            <input type="number" id="utcOffset" placeholder="0" min="-12" max="14" step="1">
-                        </div>
-                    </div>
-
-                    <h6>Display Colors</h6>
-                    <div class="form-group color-picker">
-                        <label for="pathColor" class="color-input-label">Path:</label>
-                        <input type="color" id="pathColor" class="color-input" value="#00ff00">
-                    </div>
-                    <div class="form-group color-picker">
-                        <label for="observerColor" class="color-input-label">Observer:</label>
-                        <input type="color" id="observerColor" class="color-input" value="#0000ff">
-                    </div>
-                    <div class="form-group color-picker">
-                        <label for="epochColor" class="color-input-label">Epoch:</label>
-                        <input type="color" id="epochColor" class="color-input" value="#ff0000">
-                    </div>
-                    <div class="form-group color-picker">
-                        <label for="stopColor" class="color-input-label">Stop:</label>
-                        <input type="color" id="stopColor" class="color-input" value="#ffff00">
-                    </div>
-
-                    <button type="button" class="btn">Save Plot</button>
-                </form>
+                <div id="plot" style="width: auto;"></div>
+                <p style="font-style:italic; padding-top: 3px;" id="tipText">Tip: If nothing is here, click "Generate Plot"!</p>
             </div>
         </div>
 
         <!-- Next Pass Section -->
-        <div class="section-header">Next Pass</div>
-        <div class="form-group">
-            <label for="minElevation">Minimum Pass Elevation:</label>
-            <input type="number" id="minElevation" placeholder="0" min="0" max="90" step="1" style="width: 30%"> degrees
+        <div id="nextPass">
+            <div class="section-header">Next Pass</div>
+            <p id="nextPassError" style="color:red; display:none;">ERROR</p>
+            <div class="form-group">
+                <label for="minElevation">Minimum Pass Elevation:</label>
+                <input type="text" id="minElevation" style="width: 10%;" onblur="validateNextPass()"> degrees
+            </div>
+            <p id="nextPassText">Loading next passes...</p>
         </div>
-        <p>{name} will rise above -- degrees next at {next_pass_time} UTC on {next_pass_date}. It will set at {next_set_time} UTC on {next_set_date}.</p>
-
         <!-- In Sun Section -->
         <div class="section-header">In Sun</div>
-        <form>
-            <div class="form-group">
-                <label for="sunDate">Date:</label>
-                <input type="text" id="sunDate" placeholder="mm/dd/yyyy">
-            </div>
-            <div class="time-input-group">
-                <input type="text" id="stopTime" placeholder="hh:mm:ss">
-                <span>UTC</span>
-                <input type="number" id="utcOffset" placeholder="0" min="-12" max="14" step="1">
-            </div>
-        </form>
-        <p>On {sun_date} at {sun_time} UTC, {name} will be {in_or_out_of_sun}</p>
-
-        <!-- General Information Section -->
-        <div class="section-header">General Information</div>
-        <h6>Basic</h6>
-        <ul>
-            <li>ID: {satellite_id}</li>
-            <li>Launch Year: {launch_year}</li>
-            <li>Classification: {classification}</li>
-            <li>Epoch: {epoch}</li>
-            <li>Period: {period} hours</li>
-        </ul>
-        
-        <h6>Orbital Elements</h6>
-        <ul>
-            <li>Semi-Major Axis: {sma} km</li>
-            <li>Eccentricity: {eccentricity}</li>
-            <li>Eccentricity Vector: [{ex}, {ey}, {ez}]</li>
-            <li>Inclination: {inc} degrees</li>
-            <li>Right Ascension of the Ascending Node: {RAAN} degrees</li>
-            <li>Argument of Periapsis: {argp} degrees</li>
-        </ul>
-
+        <p id="sunErrorText" style="display:none; color:red">ERROR: Enter a date for sun analysis.</p>
+        <div class="form-group">
+            <label for="sunDate">Date:</label>
+            <input type="date" id="sunDate">
+        </div>
+        <div class="form-group">
+            <label for="sunTime">Time:</label>
+            <input type="time" id="sunTime">
+        </div>
+        <p id="sunText" style="display:none; padding-top: 3px; padding-bottom: 15px;">On {sun_date} at {sun_time}, {satelliteName} will {in_or_out_of_sun}.</p>
+        <div style="display: flex; justify-content: center; margin-top: 20px;">
+            <button type="button" class="btn" id='sunButton' onclick="checkSunlit()" style="width:50%;">Submit</button>
+        </div>
         <!-- Return Button -->
         <div class="text-center" style="margin-top: 20px;">
-            <button type="button" class="btn btn-secondary" onclick="window.history.back();">Return</button>
+            <button type="button" id="returnButton" onclick="window.history.back()">Back</button>
         </div>
     </div>
 </body>
+<script src="{{ url_for('static',filename='javascript/results.js') }}"></script>
+<script src="{{ url_for('static',filename='javascript/groundtrack.js') }}"></script>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </html>

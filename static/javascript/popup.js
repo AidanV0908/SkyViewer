@@ -29,5 +29,5 @@ async function loadVersion() {
     const constants = await response.json();
     
     // Set the title with version
-    document.getElementById('title-text').innerText = `SKYVIEWER v${constants.version}`;
+    document.getElementById('version').innerText = `v${constants.version}`;
 }

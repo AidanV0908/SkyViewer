@@ -1,6 +1,6 @@
 # VERSION INFO
-VERSION = "1.3.0"
-DATE = '13-OCT-2024'
+VERSION = "1.0.0"
+DATE = '16-OCT-2024'
 
 # API INFO
 API_URL = "http://tle.ivanstanojevic.me/api/tle"
@@ -9,9 +9,6 @@ HEADERS = {
     'Accept': 'application/json',  # Modify this depending on what the API expects
     'Connection': 'keep-alive'  # Keep the connection alive
 }
-
-# MAXIMUM CACHE STORAGE TIME FOR SEARCHES (s)
-MAX_CACHE_TIME = 3600
 
 # MU of Earth
 MU = 398600.4418

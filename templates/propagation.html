@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/skyviewer.css') }}">
+    <title>Usage Guide</title>
+    <style>
+        body{
+            background-color: #f0f0f0;
+        }
+
+        .content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        p {
+            margin-left: 10%;
+            margin-right: 10%;
+        }
+        img{
+            width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body onload="setMaxProp()">
+    <div class="content">
+        <h1>Why is My Functionality Restricted?</h1>
+        <p>
+            If you've navigated to this page, it is likely that you found a satellite with what I've dubbed a "stale TLE". All of the two line elements
+            have an "epoch date" associated with them, which is when the measurements were taken. A technique called propagation can make predictions about 
+            the future state (position and velocity) of the satellite based off of the current state by taking into account all of the accelerations on the satellite.
+            The Keplerian model is the most basic of these propagation models and only takes into account a simplified model of Earth's gravity assuming a perfect sphere.
+            There are other factors affecting the satellite, such as atmospheric drag, the gravitational effects of third bodies, and the fact that Earth is not, in fact, a
+            perfect sphere. As such, there are many different types of these propagators. Some models are more accurate than others, but even the most accurate has drift after 
+            a long enough scale. For those curious, this program relies on the Skyfield library and uses SGP4 propagation, which is the default for two-line elements. For more
+            information about it, I found <a href="https://celestrak.org/publications/AIAA/2008-6770/AIAA-2008-6770.pdf">this</a> to be a pretty good source.
+        </p>
+        <p>
+            However, earth orbiting satellites tend to be pretty stable, and our model should track it accurately for a longer time scale, so what gives? Well, unlike natural satellites,
+            man-made satellites can actually move. This could be to station-keeping to maintain their orbit, collision avoidance, or any other number of factors. Because anticipating these
+            movements requires more information than I have access to, I have used this as another reason to restrict the data.
+        </p>
+        <p>
+            In conclusion, unfortunately, if the data is beyond the propagation limit, which is currently <span id="limit"></span> days, the program will refuse to process it. This 
+            is because I don't want anyone to draw conclusions that may be inaccurate. It is always better to use the most accurate TLE data you have access to.
+        </p>
+    </div>
+    <button id="returnButton" onclick="window.history.back();"> &lt; </button>
+</body>
+<script>
+    // Load max prop info
+    async function setMaxProp() {
+        const response = await fetch('/prop-time');
+        const constants = await response.json();
+        
+        // Set the title with version
+        document.getElementById('limit').innerText = `${constants.maxprop}`;
+    }
+</script>
+</html>

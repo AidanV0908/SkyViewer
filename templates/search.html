@@ -82,8 +82,9 @@
     <hr>
     <div class="overlay" id="warningPopup">
         <div class="popup">
-            <h1>⚠️ WARNING ⚠️</h1>
-            <p id="warning-text">TLE is older than XX days, so real-time propagation is disabled for this satellite. Continue?</p>
+            <h1 style="color: #ffd000">WARNING</h1>
+            <p id="warning-text">TLE is older than XX days. You can still collect information about this satellite, but some functions may be restricted, and propagation to real time may be inaccurate. Continue anyway?</p>
+            <p><a href="/propagation-restrictions">Why am I seeing this message?</a></p>
             <button class="btn-yes" id="btn-yes">YES</button>
             <button class="btn-no" id="btn-no">NO</button>
         </div>
@@ -110,16 +111,12 @@
         <p id="page-info" class="page-info" style="margin: 0;">Page 1 of 1</p>
         <button id="next-button" class="pagination-link" style="display: none;">Next</button> <!-- Initially hidden -->
     </div>
+    <div class="text-center" style="margin-top: 20px;">
+        <button type="button" id="returnButton" onclick="window.location.href='/';">Main Menu</button>
+    </div>
 </body>
 
 <script src="{{ url_for('static',filename='javascript/verifySatellite.js') }}"></script>
 <script src="{{ url_for('static',filename='javascript/updateSearchContent.js') }}"></script>
-<script>
-    function onLoadFunctions() {
-        updateSearchContent('ISS', 1);
-        setMaxProp();
-    }
-</script>
-</script>
 
 </html>

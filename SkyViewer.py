@@ -2,7 +2,7 @@
 #!/usr/bin/env python3
 
 import skyfield.elementslib
-from skyfield.api import wgs84, load, EarthSatellite
+from skyfield.api import wgs84, load, EarthSatellite, Topos
 import math
 import skyfield.timelib
 from flask import Flask, request, jsonify, render_template
@@ -12,26 +12,10 @@ import openai
 from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
 from skyfield.api import utc
-import threading;
 
 import numpy as np;
-import matplotlib
-import matplotlib.pyplot as plt
 import time
-from config import VERSION, DATE, API_URL, HEADERS, MAX_CACHE_TIME, MU, RE_EQ, T_PROP_MAX
-import json
-from matplotlib.lines import Line2D
-
-import redis
-from redis.commands.json.path import Path
-import redis.commands.search.aggregation as aggregations
-import redis.commands.search.reducers as reducers
-from redis.commands.search.field import TextField, NumericField, TagField
-from redis.commands.search.indexDefinition import IndexDefinition, IndexType
-from redis.commands.search.query import NumericFilter, Query
-from redis.exceptions import RedisError
-
-matplotlib.use('agg')
+from config import VERSION, DATE, API_URL, HEADERS, MU, RE_EQ, T_PROP_MAX
 
 
 load_dotenv()
@@ -41,25 +25,9 @@ app = Flask(__name__)
 # GET OPENAI KEY
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# GET REDIS URL
-# REDIS_URL = os.getenv("REDIS_URL")
-
-# SET UP REDIS CACHE
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)  # or however long you want the session to last
-
-r = redis.Redis(
-        host=os.getenv("REDIS_HOST"),
-        port=int(os.getenv("REDIS_PORT")), 
-        db=int(os.getenv("REDIS_DB")), 
-        username = os.getenv("REDIS_USER"),
-        password = os.getenv("REDIS_PASS")
-    )
-
 # Calls home screen, caches default search
 @app.route("/")
 def SkyViewer():
-    # Start caching asynchronously in a separate thread
-    threading.Thread(target=cache_default).start()
     # Load startup page
     return render_template('startup.html')
 
@@ -81,20 +49,10 @@ def search():
     # Run search with initial (empty search) TLE data
     return render_template('search.html', **data)
 
-# Launches observation page
-@app.route("/get-obs-info", methods=['POST'])
-def get_obs_info():
-    # Get and pass on satellite ID from JSON
-    satellite_id = request.form.get("ID")
-    # Get satellite data
-    data = json.loads(r.get(f"{satellite_id}"))
-    # Extract epoch
-    epoch_date = data['epoch_date']
-
-    return render_template('obsdata.html',
-                        satellite_id=satellite_id,
-                        epoch_date = epoch_date)
-
+# Propagation guide
+@app.route('/propagation-restrictions')
+def prop():
+    return render_template('propagation.html')
 
 # Launches results page
 @app.route("/results", methods=['GET'])
@@ -102,9 +60,12 @@ def get_results():
     # Get satellite ID
     satelliteId = request.args.get('satelliteId')
 
-    # data = get_sat_data(satelliteId)
+    data = get_sat_data(satelliteId)
 
-    return render_template('results.html')
+    if (data['code'] == 200):
+        return render_template('results.html', **data)
+    else:
+        return render_template('404.html')
 
 # Endpoint for search function to update results
 @app.route("/refresh-search", methods=['POST'])
@@ -132,63 +93,252 @@ def max_prop():
     return jsonify({
         'maxprop': T_PROP_MAX,
     })
+    
+# Endpoint for getting epoch data
+@app.route('/epoch-data', methods=['POST'])
+def epoch_data():
+    datain = request.json  # Use request.json to get JSON data
+    id = datain.get("ID")
 
-# Endpoint to check and cache satellite id
-@app.route('/add-satellite-to-cache', methods=['POST'])
-def cache_sat():
-    data = request.json  # Use request.json to get JSON data
-    id = data.get("ID")
-    # Make an API request to fetch sorted results based on the search term
     api_url = f"{API_URL}/{id}"
     response = requests.get(api_url, headers=HEADERS)
     
     if response.status_code == 200:
         data = response.json()
-        # Get information from JSON
+        line1 = data['line1']
+        # Get epoch date from TLE
+        epoch_datetime = parse_tle_epoch(line1)
+
+        # Get the dates T_PROP_MAX before epoch and after epoch
+        date_before = epoch_datetime - timedelta(days=T_PROP_MAX)
+        date_after = epoch_datetime + timedelta(days=T_PROP_MAX)
+
+        # Convert back to string format "YYYY-MM-DD"
+        prop_min = date_before.strftime("%Y-%m-%d")
+        prop_max = date_after.strftime("%Y-%m-%d")
+
+        # Check if the current date is within the propagation bounds
+        now_datetime = datetime.now(timezone.utc)
+
+        # Get difference between current time and epoch
+        dt = (now_datetime - epoch_datetime).days
+
+        return jsonify({
+            'maxprop': T_PROP_MAX,
+            'days_since_epoch' : dt,
+            'prop_min' : prop_min,
+            'prop_max' : prop_max
+        })
+    
+    return { "message" : "Couldn't get satellite info" }, 503
+
+# Endpoint for maximum propagation time
+@app.route('/generate-gt', methods=['POST'])
+def generate_ground_track():
+    datain = request.json  # Use request.json to get JSON data
+    # ID of satellite
+    id = datain.get("ID")
+    # Reference date and time for ground track
+    refD = datain.get("date")
+    refT = datain.get("time")
+    # Time zone of reference time
+    refTZ = datain.get("timezone")
+    # Number of periods to show on ground track
+    periods = int(datain.get("periods"))
+    # Direction of propagation ("forward" "backward" "bidirectional")
+    direction = datain.get("direction")
+    # Observation latitude and longitude
+    obslat = datain.get("lat")
+    obslong = datain.get("long")
+
+    api_url = f"{API_URL}/{id}"
+    response = requests.get(api_url, headers=HEADERS)
+    
+    if response.status_code == 200:
+        data = response.json()
         name = data['name']
         line1 = data['line1']
         line2 = data['line2']
-        # Get epoch date from TLE
-        epoch = parse_tle_epoch(line1)
-        # Calculate difference between current time and epoch time
-        now = datetime.now(timezone.utc)
-        t_diff = (now - epoch).days
-        # Create JSON for satellite. Include epoch as a commonly referenced value
-        satellite = {
-            "name" : name,
-            "line1" : line1,
-            "line2" : line2,
-            "epoch_date" : epoch.strftime("%Y-%m-%d"),
-            "epoch_time" : epoch.strftime("%H-%M-%S")
+
+        satellite = EarthSatellite(line1, line2, name)
+
+        # Get t_start and t_end from reference time
+        sat_state = satellite.at(satellite.epoch)
+        orbit = skyfield.elementslib.osculating_elements_of(sat_state)
+        sma = orbit.semi_major_axis.km
+        period = 2*np.pi*np.sqrt(np.pow(sma, 3) / MU) # s
+        refTime = datetime.strptime(f"{refD} {refT}", "%Y-%m-%d %H:%M:%S")
+
+        # Add timezone
+        utc_offset_hours = int(refTZ)
+        utc_offset = timezone(timedelta(hours=utc_offset_hours))
+        refTime = refTime.replace(tzinfo = utc_offset)
+        refTime = refTime.astimezone(timezone.utc)
+
+        # Get start and end times
+        startTime = stopTime = refTime
+        if (direction == "forward"):
+            stopTime = refTime + timedelta(seconds=period*periods)
+        elif (direction == "backward"):
+            startTime = refTime - timedelta(seconds=period*periods)
+        else:
+            startTime = refTime - timedelta(seconds=period*(periods/2))
+            stopTime = refTime + timedelta(seconds=period*(periods/2))
+
+        # Calculate steps to use
+        dt = (period*periods) / (3600*24)
+        step_count = steps(sma - RE_EQ, dt)
+
+        # Get latitudes and longitudes
+        ts = load.timescale()
+        t_start = ts.from_datetime(startTime)
+        t_stop = ts.from_datetime(stopTime)
+        stepTimes = ts.linspace(t_start, t_stop, step_count)
+
+        sat_states = satellite.at(stepTimes)
+        lats_prop, longs_prop = wgs84.latlon_of(sat_states)
+
+        lats_prop = lats_prop.degrees
+        longs_prop = longs_prop.degrees
+
+        # Get latitude and longitude of refTime
+        refTime_t = ts.from_datetime(refTime)
+        lat_ref, long_ref = wgs84.latlon_of(satellite.at(refTime_t))
+
+        # Prepare data for JSON response
+        response_data = {
+            'latitudes': lats_prop.tolist(),
+            'longitudes': longs_prop.tolist(),
+            'name': name,
+            'observerLat': float(obslat),
+            'observerLong': float(obslong),
+            'timestamp': time.time(),
+            'refLat' : float(lat_ref.degrees),
+            'refLong' : float(long_ref.degrees),
+            "pathColor" : datain.get("pathColor"),
+            "observerColor" : datain.get("observerColor"),
+            "refTimeColor" : datain.get("refTimeColor"),
         }
-        # Try to cache the satellite
-        try:
-            r.set(f"{id}", json.dumps(satellite))
-            return jsonify({'message': 'Data saved to cache successfully', 'days_since_epoch': t_diff, 'maxprop': T_PROP_MAX}), 200
-        except RedisError as e:
-            # Log the error (optional) and return an error response
-            print(f"Error saving to Redis: {e}")
-            return jsonify({'error': 'CachingFailure'}), 503  # 503 Service Unavailable
-    
-    return jsonify({'error': 'Failure of NASA API'}), 503  # 503 Service Unavailable
 
-# Endpoint to check and cache satellite id
-@app.route('/remove-satellite-from-cache', methods=['POST'])
-def remove_id_from_cache():
-    data = request.json  # Use request.json to get JSON data
-    satellite_id = data.get("ID")
+        return response_data, 200
     
-    if not satellite_id:
-        return jsonify({'error': 'ID is required in the request body'}), 400  # Bad Request if ID is missing
+    return { "message" : "Couldn't get satellite info" }, 503
 
-    response = r.delete(f"{satellite_id}")
+# Check sunlit status
+@app.route('/is-sunlit', methods=['POST'])
+def sunlit():
+    datain = request.json  # Use request.json to get JSON data
+    # ID of satellite
+    id = datain.get("ID")
+    # Reference date and time for ground track
+    date = datain.get("date")
+    time = datain.get("time")
+    tz = datain.get("tz")
+   
+    # Ephemeris
+    eph = load('de421.bsp')
 
-    if response==1:
-        # Log the error (optional) and return an error response
-        return jsonify({'message': 'Successfully removed key'}), 200 
-    else:
-        return jsonify({'warning': 'Failed to remove key from cache'}), 503  # 503 Service Unavailable
+    api_url = f"{API_URL}/{id}"
+    response = requests.get(api_url, headers=HEADERS)
     
+    if response.status_code == 200:
+        data = response.json()
+        name = data['name']
+        line1 = data['line1']
+        line2 = data['line2']
+
+        satellite = EarthSatellite(line1, line2, name)
+
+        t = datetime.strptime(f"{date} {time}", "%Y-%m-%d %H:%M:%S")
+        utc_offset_hours = float(tz)
+        utc_offset = timezone(timedelta(hours=utc_offset_hours))
+        t = t.replace(tzinfo = utc_offset)
+        t = t.astimezone(timezone.utc)
+
+        ts = load.timescale()
+        t = ts.from_datetime(t)
+
+        sat_state = satellite.at(t)
+
+        is_sun = sat_state.is_sunlit(eph)
+
+        sunStatus = "idk"
+        if (is_sun):
+            sunStatus = "be sunlit"
+        else:
+            sunStatus = "not be sunlit"
+
+        # Prepare data for JSON response
+        response_data = {
+            'satelliteName': name,
+            'sunStatus': sunStatus,
+        }
+
+        return response_data, 200
+    
+    return { "message" : "Couldn't get satellite info" }, 503
+
+# Find next pass
+@app.route('/next-pass', methods=['POST'])
+def nextPass():
+    datain = request.json  # Use request.json to get JSON data
+    # ID of satellite
+    id = datain.get("ID")
+
+    # Observation latitude and longitude
+    obslat = datain.get("lat")
+    obslong = datain.get("long")
+    min_elevation = datain.get("minEl")
+
+    api_url = f"{API_URL}/{id}"
+    response = requests.get(api_url, headers=HEADERS)
+    
+    if response.status_code == 200:
+        data = response.json()
+        name = data['name']
+        line1 = data['line1']
+        line2 = data['line2']
+
+        satellite = EarthSatellite(line1, line2, name)
+
+
+        ts = load.timescale()
+        start_time = ts.utc(datetime.now().replace(tzinfo=timezone.utc))
+        end_time = start_time + timedelta(days=1)
+
+        observer_location = Topos(float(obslat), float(obslong))  # Example for West Lafayette, IN
+
+        t, events = satellite.find_events(observer_location, start_time, end_time, altitude_degrees=min_elevation)
+
+        timezone_offset = timedelta(hours=float(datain.get("tz")))
+
+        message = "All times are in stated reference time zone. If nothing appears, no next passes were found within 24 hours.\n"
+        for ti, event in zip(t, events):
+            # Get UTC hour, minute, and second
+            local_time = ti.utc_datetime() + timezone_offset
+            hours, minutes = local_time.hour, local_time.minute
+            seconds = round(local_time.second)
+
+            # Format as HH:MM:SS
+            ft = f"{hours:02}:{minutes:02}:{seconds:02}"
+
+            if event == 0:
+                message += f"At {ft}, the satellite will rise above {min_elevation}.\n"
+            elif event == 1:
+                message += f"At {ft}, the satellite will reach its maximum elevation angle.\n"
+            else:
+                message += f"At {ft}, the satellite will fall below {min_elevation}.\n"
+
+
+        # Prepare data for JSON response
+        response_data = {
+            'message': message,
+        }
+
+        return response_data, 200
+    
+    return { "message" : "Couldn't get satellite info" }, 503
+
 
 # function that takes in string argument as parameter
 def comp(PROMPT):
@@ -212,13 +362,6 @@ def search_TLE(search_term, page):
     # Results per page (fixed at 20 by output of API)
     per_page =  20
 
-    # Check if data is cached
-    cache_key = f"{search_term}_{page}"
-    
-    cached_data = r.get(cache_key)
-    if cached_data:
-        return (json.loads(cached_data))
-    
     # Make an API request to fetch sorted results based on the search term
     api_url = f"{API_URL}?search={search_term}&page={page}"
     response = requests.get(api_url, headers=HEADERS)
@@ -251,191 +394,90 @@ def search_TLE(search_term, page):
             'API_Code': response.status_code 
             }
     
-    r.set(f"{search_term}_{page}", json.dumps(data), ex=MAX_CACHE_TIME)
     return data
 
 # Get data from specific TLE data
-def get_sat_data(satelliteId, date, time_in, tz, lat_observer_obs, long_observer_obs):
-    # Default calculated output variable states -- if not found
-    az = alt = distance = epoch = classification = ai_exerpt = name = "<Missing>"
-    sma = inc = raan = argp = ea = ecc = "<Missing>"
-    obs_time_jd = obs_time_utc = time_tz = '<Missing>'
-
+def get_sat_data(satelliteId):
     # Get TLE data
-    # api_url = f"{API_URL}/{satelliteId}"
-    # response = requests.get(api_url, headers=HEADERS)
-    # if response.status_code == 200:
+    api_url = f"{API_URL}/{satelliteId}"
+    response = requests.get(api_url, headers=HEADERS)
 
-    # Get cached data from ID
-    data = json.loads(r.get(f"{satelliteId}"))
+    code = response.status_code
     
-    name = data['name']
+    if response.status_code == 200:
+        data = response.json()
+        name = data['name']
 
-    # Get AI exerpt
-    try:
-        PROMPT = f"Generate a brief exerpt (100 - 150 words) about the satellite {name}. Include the creators (orgs and countries), mission plan, accomplishments and results if applicable, and interesting facts."
-        response = comp(PROMPT)
-        ai_exerpt = response.choices[0].message.content
-    except:
-        ai_exerpt = "I have been drained of OpenAI API tokens and I'm not trying to spend a fortune on this. AI exerpt unavailable, for now."
+        # Get AI exerpt
+        try:
+            PROMPT = f"Generate a brief exerpt (100 - 150 words) about the satellite {name}. Include the creators (orgs and countries), mission plan, accomplishments and results if applicable, and interesting facts."
+            response = comp(PROMPT)
+            ai_exerpt = response.choices[0].message.content
+        except:
+            ai_exerpt = "AI exerpt generation failed. Try again later."
 
-    # Skyfield stuff
-    line1 = data['line1']
-    line2 = data['line2']
+        # Skyfield stuff
+        line1 = data['line1']
+        line2 = data['line2']
 
-    launch_year = int(line1[9:11])
-    year = ''
-    if launch_year < 57:
-        year = str(launch_year + 2000)
+        launch_year = int(line1[9:11])
+        year = ''
+        if launch_year < 57:
+            year = str(launch_year + 2000)
+        else:
+            year = str(launch_year + 1900)
+
+        satellite = EarthSatellite(line1, line2, name)
+        classifications = {
+            "U": "Unclassified",
+            "C": "Classified",
+            "S": "Secret"
+        }
+        classification = classifications.get(satellite.model.classification, "Unknown")
+
+        # Orbit elements (epoch)
+        sat_state = satellite.at(satellite.epoch)
+        orbit = skyfield.elementslib.osculating_elements_of(sat_state)
+        sma = orbit.semi_major_axis.km
+        ecc = orbit.eccentricity
+        inc = orbit.inclination.degrees
+        raan = orbit.longitude_of_ascending_node.degrees
+        argp = orbit.argument_of_periapsis.degrees
+        period = 2*np.pi*np.sqrt(np.pow(sma, 3) / MU) # s
+
+        # Epoch time representations
+        epoch_jd = str((satellite.epoch.J - 2000) * 365.25 + 2451545)
+        epoch_utc = satellite.epoch.utc_iso()
+
+        # Convert to a datetime
+        epoch_datetime = datetime.fromisoformat(epoch_utc.replace("Z", ""))
+
+        # Format it to only display the date
+        epoch_date = epoch_datetime.strftime("%Y-%m-%d")
+        epoch_time = epoch_datetime.strftime("%H:%M:%S")
+
+        return {
+            "code" : code,
+            "satelliteName" : name,
+            "satelliteId" : satelliteId,
+            "ai_exerpt" : ai_exerpt,
+            "launch_year" : year,
+            "period" : f"{(period / 3600):.4f}",
+            "sma" : f"{sma:.4f}",
+            "inc" : f"{inc:.4f}",
+            "raan" : f"{raan:.4f}",
+            "epochdate" : epoch_date,
+            "epochtime" : epoch_time,
+            "ecc" : f"{ecc:.4f}",
+            "argp" : f"{argp:.4f}",
+            "maxprop" : T_PROP_MAX,
+            "classification" : classification,
+        }
     else:
-        year = str(launch_year + 1900)
-
-    ts = load.timescale()
-    satellite = EarthSatellite(line1, line2, name)
-    classifications = {
-        "U": "Unclassified",
-        "C": "Classified",
-        "S": "Secret"
-    }
-    classification = classifications.get(satellite.model.classification, "Unknown")
-
-    # Orbit elements (epoch)
-    sat_state = satellite.at(satellite.epoch)
-    orbit = skyfield.elementslib.osculating_elements_of(sat_state)
-    sma = orbit.semi_major_axis.km
-    ecc = orbit.eccentricity
-    inc = orbit.inclination.degrees
-    raan = orbit.longitude_of_ascending_node.degrees
-    argp = orbit.argument_of_periapsis.degrees
-    period = 2*np.pi*np.sqrt(np.pow(sma, 3) / MU)
-
-    # Parse the date and time separately
-    date_obj = datetime.strptime(date, "%Y-%m-%d").date()
-    time_obj = datetime.strptime(time_in, "%H:%M:%S").time()
-
-    # Set timezone to UTC, or another specific offset
-    tz_info = timezone(timedelta(hours=float(tz)))
-    obs_datetime = datetime.combine(date_obj, time_obj, tzinfo=tz_info)
-    time_tz = obs_datetime.strftime("%H:%M:%S")
-
-    # Skyfield times
-    ts = load.timescale()
-    obs_t = ts.from_datetime(obs_datetime)
-    obs_time_jd = str((obs_t.J  - 2000.0) * 365.25 + 2451545)
-    epoch_jd = str((satellite.epoch.J - 2000) * 365.25 + 2451545)
-    obs_time_utc = obs_t.utc_iso()
-    epoch_utc = satellite.epoch.utc_iso()
-
-    # Difference between epoch and observation time in days
-    t_diff = abs(obs_t - satellite.epoch)
-
-    # DO NOT PROPAGATE past a month, too many steps & accuracy decrease causes it to not be worth it
-    if (t_diff < 30):
-        # Get steps
-        steps = np.ceil(steps_per_day(sma - RE_EQ) * t_diff)
-
-        # Get a list of times between epoch and observation time to propagate
-        propagations = ts.linspace(satellite.epoch, obs_t, 1000)
-
-        # Get the states at all of the propagation times
-        sat_states = satellite.at(propagations)
-        lats_prop, longs_prop = wgs84.latlon_of(sat_states)
-
-        # Generate ground track plot if observation time is within propagation window
-        plt.figure()
-        img = plt.imread('static/images/Map.jpg')
-        plt.imshow(img, extent=[-180, 180, -90, 90])
-
-        # Split ground track into segments for wrapping at map edges
-        segments = []
-        segment_start = 0
-        # Get longitudes in degrees
-        longs_prop = longs_prop.degrees
-        lats_prop = lats_prop.degrees
-        for i in range(1, len(longs_prop)):
-            if abs(longs_prop[i] - longs_prop[i - 1]) > 180:
-                segments.append((longs_prop[segment_start:i], lats_prop[segment_start:i]))
-                segment_start = i
-        # Append the last segment
-        segments.append((longs_prop[segment_start:], lats_prop[segment_start:]))
-
-        # Plot each segment separately
-        for long_segment, lat_segment in segments:
-            plt.plot(long_segment, lat_segment, color="olive", markersize=1)
-
-        # Fake line to represent all plots of ground track in one legend entry
-        # custom_line = Line2D([0], [0], color='olive', lw=1)
-
-        # Plot user location
-        # observer = plt.plot(float(long_observer_obs), float(lat_observer_obs), marker="*", color="b", markersize=5)
-
-        # Plot epoch
-        # lat_epoch, long_epoch = lats_prop[0], longs_prop[0]
-        # epoch = plt.plot(float(long_epoch), float(lat_epoch), marker="o", color="g", markersize=5)
-
-        # Plot satellite at obs time
-        # lat_sat_obs, long_sat_obs = lats_prop[len(lats_prop) - 1], longs_prop[len(longs_prop) - 1]
-        # sat_obs = plt.plot(float(long_sat_obs), float(lat_sat_obs), marker="o", color="r", markersize=5)
-
-        plt.xlabel('Longitude')
-        plt.ylabel('Latitude')
-        plt.xlim(-180, 180)
-        plt.ylim(-90, 90)
-        plt.title(f'{name} Ground Track')
-        # plt.legend(
-            # handles=[custom_line, observer, epoch, sat_obs],
-            # labels=["Ground Track", "Observer", "Sat@Epoch", "Sat@Obs"]
-        # )
-        plt.grid(True)
-        timestamp = int(time.time())
-        path = os.path.join('static', 'images', 'GT.png')
-        plt.savefig(path)
-        plt.close()
-
-        # Get the observer location from their latitude and longitude
-        obs_loc = wgs84.latlon(float(lat_observer_obs), float(long_observer_obs))
-
-        # Get the satellite info relative to the observer at the observation time
-        difference = satellite - obs_loc
-        topocentric = difference.at(obs_t)
-        alt, az, distance = topocentric.altaz()
-        az = az.degrees
-        alt = alt.degrees
-        distance = distance.km
-        
-    return {
-        "satelliteName" : name,
-        "satelliteId" : satelliteId,
-        "date" : date,
-        "time" : time_in,
-        "timezone" : tz,
-        "latitude" : lat_observer_obs,
-        "longitude" : long_observer_obs,
-        "ai_exerpt" : ai_exerpt,
-        "launch_year" : year,
-        "period" : period,
-        "alt" : alt,
-        "az" : az,
-        "distance" : distance,
-        "sma" : sma,
-        "inc" : inc,
-        "raan" : raan,
-        "epoch" : epoch_utc,
-        "obs_time_jd" : obs_time_jd,
-        "obs_time_utc" : obs_time_utc,
-        "ecc" : ecc,
-        "argp" : argp,
-        "timestamp" : timestamp,
-        "classification" : classification,
-        "time_tz" : time_tz,
-    }
-
-# Function to cache default search
-def cache_default():
-    search_TLE('ISS', 1)
+        return { "code" : code }
 
 # Returns the amount of ground track steps to do per day
-def steps_per_day(altitude):
+def steps(altitude, deltaTime):
     # Parameters for the continuous function
     base_steps = 96  # Base steps per day for very low altitudes (e.g., close to Earth's surface)
     scaling_factor = 2000  # Controls how quickly the steps decrease with altitude
@@ -446,7 +488,8 @@ def steps_per_day(altitude):
     # Ensure a minimum of 6 steps per day for high altitudes
     steps_per_day = max(steps_per_day, 6)
     
-    return round(steps_per_day)
+    return 1000
+    #return round(steps_per_day * deltaTime)
 
 # Get epoch from TLE line 1 (returns a datetime)
 def parse_tle_epoch(tle_line1):

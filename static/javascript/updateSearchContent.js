@@ -127,11 +127,16 @@ function submitSearch(event) {
     updateSearchContent(searchTerm, 1); // Start at page 1
 }
 
-// Load version info
+// Load max prop info
 async function setMaxProp() {
     const response = await fetch('/prop-time');
     const constants = await response.json();
     
     // Set the title with version
-    document.getElementById('warning-text').innerText = `TLE is older than ${constants.maxprop} days, so real-time propagation is disabled for this satellite. Continue?`;
+    document.getElementById('warning-text').innerText = `TLE is older than ${constants.maxprop} days. You can still collect information about this satellite, but some functions may be restricted to ensure accurate data. Continue anyway?`;
+}
+
+function onLoadFunctions() {
+    updateSearchContent('ISS', 1);
+    setMaxProp();
 }

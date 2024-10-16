@@ -176,6 +176,7 @@ function setCurrentLocation() {
         latitudeInput.value = "";
         longitudeInput.value = "";
         loadText.style.display = "none";
+        genButton.disabled = false;
         findNextPass();
     }
 }

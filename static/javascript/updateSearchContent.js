@@ -96,18 +96,18 @@ function displaySearchResults(data) {
 
             resultsContainer.appendChild(tableContainer);
 
-            pageInfo.innerHTML = `Page <input type="text" value="${data.page}" id="pageInput" style="width: 30px;" onkeydown="onEnterPage(event)"> of ${data.pages}`;
-
-            // Handle visibility of Prev and Next buttons
-            prevButton.style.display = data.page > 1 ? 'inline-block' : 'none';
-            nextButton.style.display = data.page < data.pages ? 'inline-block' : 'none';
-
-            // Set onclick actions for Prev and Next buttons
-            prevButton.onclick = () => updateSearchContent(data.search_term, data.page - 1);
-            nextButton.onclick = () => updateSearchContent(data.search_term, data.page + 1);
         } else {
             numResultsElement.textContent = 'No results found.';
         }
+        pageInfo.innerHTML = `Page <input type="text" value="${data.page}" id="pageInput" style="width: 30px;" onkeydown="onEnterPage(event)"> of ${data.pages}`;
+
+        // Handle visibility of Prev and Next buttons
+        prevButton.style.display = data.page > 1 ? 'inline-block' : 'none';
+        nextButton.style.display = data.page < data.pages ? 'inline-block' : 'none';
+
+        // Set onclick actions for Prev and Next buttons
+        prevButton.onclick = () => updateSearchContent(data.search_term, data.page - 1);
+        nextButton.onclick = () => updateSearchContent(data.search_term, data.page + 1);
     } else {
         apiStatusElement.textContent = `Failure: API Code ${data.API_Code}`;
         numResultsElement.textContent = '';

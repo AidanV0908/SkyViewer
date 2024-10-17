@@ -390,6 +390,9 @@ def search_TLE(search_term, page):
     # pages
     pages = math.ceil(total_results / 20)
 
+    if (total_results == 0):
+        pages = 1
+
     data = { 
             'search_term' : search_term,
             'page' : page,

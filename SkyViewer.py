@@ -380,7 +380,7 @@ def search_TLE(search_term, page):
         members = data.get('member', [])  # Get the 'member' array from the response
         total_results = data['totalItems']
         # Override for total items due to a weird error in API for single-item searches
-        if (len(members) < 20):
+        if (len(members) < 20 and page == 1):
             total_results = len(members)
 
     # Determine if we need to show next/prev buttons

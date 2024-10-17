@@ -1,3 +1,5 @@
+let data = {};
+
 async function updateSearchContent(searchTerm, page = 1) {
     try {
         showLoading(); // Show loading spinner
@@ -10,7 +12,7 @@ async function updateSearchContent(searchTerm, page = 1) {
         });
 
         if (response.ok) {
-            const data = await response.json();
+            data = await response.json();
             data.API_Code = 200; // Set success code for consistent handling
             displaySearchResults(data); // Display the data on the page
         } else {
@@ -94,7 +96,7 @@ function displaySearchResults(data) {
 
             resultsContainer.appendChild(tableContainer);
 
-            pageInfo.textContent = `Page ${data.page} of ${data.pages}`;
+            pageInfo.innerHTML = `Page <input type="text" value="${data.page}" id="pageInput" style="width: 30px;" onkeydown="onEnterPage(event)"> of ${data.pages}`;
 
             // Handle visibility of Prev and Next buttons
             prevButton.style.display = data.page > 1 ? 'inline-block' : 'none';
@@ -139,4 +141,22 @@ async function setMaxProp() {
 function onLoadFunctions() {
     updateSearchContent('ISS', 1);
     setMaxProp();
+}
+
+function onEnterPage(event) {
+        if (event.key === "Enter") {
+        pageVal = document.getElementById('pageInput').value
+        if (validPage(pageVal)) {
+            updateSearchContent(data.search_term, parseInt(pageVal));
+        }
+    }
+}
+
+function validPage(page) {
+    if (!isNaN(page)) {
+        if (parseInt(page) <= data.pages && parseInt(page) != data.page) {
+            return true;
+        }
+    }
+    return false;
 }

@@ -195,6 +195,7 @@ body {
   background-color: #007bff;  /* Background color for links */
   color: white;                /* Text color */
   border-radius: 5px;         /* Rounded corners */
+  border: none;
   transition: background-color 0.3s; /* Smooth transition for hover effect */
 }
 
@@ -248,17 +249,17 @@ body {
 .submit-button {
   text-align: center; /* Center text */
   padding: 0px; /* Add padding for cells */
-  background-color: #f5f5dc;
+  background-color: #e2c924;
   color: black;
-  border: 2px solid black;
-  border-radius: 0%;
+  border: none;
+  border-radius: 4px;
   width: 50%;
   height: 30px;
   cursor: pointer; /* Pointer cursor on hover */
 }
 
 .submit-button:hover {
-  background-color: #f8f8dc; /* Lighter on hover */
+  background-color: #ecec62; /* Lighter on hover */
   transform: scale(1.05); /* Slightly enlarge */
   transition: background-color 0.3s, transform 0.3s; /* Smooth transition */
 }

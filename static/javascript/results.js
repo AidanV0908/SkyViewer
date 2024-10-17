@@ -148,6 +148,7 @@ function setCurrentLocation() {
                     longitudeInput.disabled = true;
                     findNextPass();
                     loadText.style.display = "none";
+                    genButton.disabled = false;
                 },
                 function() {
                     checkbox.checked = false;
@@ -155,6 +156,7 @@ function setCurrentLocation() {
                     errorText.textContent = "Could not retrieve location. Make sure location services are enabled.";
                     findNextPass();
                     loadText.style.display = "none";
+                    genButton.disabled = false;
                 },
                 {
                     enableHighAccuracy: true, // Request high accuracy
@@ -167,6 +169,7 @@ function setCurrentLocation() {
             errorText.style.display = "block";
             errorText.textContent = "ERROR"
             loadText.style.display = "none";
+            genButton.disabled = false;
         }
     } else {
         latitudeInput.disabled = false;
@@ -174,9 +177,9 @@ function setCurrentLocation() {
         latitudeInput.value = "";
         longitudeInput.value = "";
         loadText.style.display = "none";
+        genButton.disabled = false;
         findNextPass();
     }
-    genButton.disabled = false;
 }
 
 // Validate inputs for latitude and longitude

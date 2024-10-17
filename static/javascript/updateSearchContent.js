@@ -54,10 +54,10 @@ function displaySearchResults(data) {
             headerRow.innerHTML = `
                 <div class="cell">ID</div>
                 <div class="cell">Name</div>
-                <div class="cell"></div>
+                <div class="cell" style="min-width: 125px"></div>
                 <div class="hidden-cell">ID</div>
                 <div class="hidden-cell">Name</div>
-                <div class="hidden-cell"></div>`;
+                <div class="hidden-cell" style="min-width: 125px"></div>`;
             tableContainer.appendChild(headerRow);
 
             data.members.forEach(member => {

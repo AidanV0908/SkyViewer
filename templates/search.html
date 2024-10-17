@@ -44,6 +44,23 @@
             padding: 0px; /* Add padding for cells */
         }
 
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 8px 12px;
+            font-size: 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .btn:disabled {
+            background-color: #5a6268;
+        }
+
         /* Media Query for Larger Screens */
         @media (min-width: 768px) {
             .table-container {
@@ -58,6 +75,11 @@
                 display: grid;
                 text-align: center; /* Center text */
                 padding: 0px; /* Add padding for cells */
+            }
+
+            .loadingForm {
+                display: flex;
+                flex-direction: column;
             }
         }
     </style>
@@ -94,8 +116,10 @@
     <form action="/sat-search" method="POST" class="loadingForm" onsubmit="submitSearch(event)">
         <label for="search_term">Enter Search Term:</label>
         <input type="hidden" id="page" name="page" value="1">
-        <input type="text" id="search_term" name="search_term" value="">
-        <input type="submit" value="Submit">
+        <div style="display: flex; gap: 10px;">
+            <input type="text" id="search_term" name="search_term" value="">
+            <input type="submit" class="btn" value="Submit">
+        </div>
     </form>
 
     <h3 style="margin-bottom: 0; padding-bottom: 0;">Results</h3>
@@ -107,7 +131,7 @@
     
     <!-- Pagination info and controls aligned in a row -->
     <div id="pagination-container" style="display: flex; align-items: center; gap: 10px; margin-top: 10px">
-        <button id="prev-button" class="pagination-link" style="display: none;">Previous</button> <!-- Initially hidden -->
+        <button id="prev-button" class="pagination-link" style="display: none;">Prev</button> <!-- Initially hidden -->
         <p id="page-info" class="page-info" style="margin: 0;">Page 1 of 1</p>
         <button id="next-button" class="pagination-link" style="display: none;">Next</button> <!-- Initially hidden -->
     </div>

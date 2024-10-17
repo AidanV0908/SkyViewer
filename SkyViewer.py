@@ -379,6 +379,9 @@ def search_TLE(search_term, page):
         data = response.json()  # Assuming the API returns JSON data
         members = data.get('member', [])  # Get the 'member' array from the response
         total_results = data['totalItems']
+        # Override for total items due to a weird error in API for single-item searches
+        if (len(members) < 20):
+            total_results = len(members)
 
     # Determine if we need to show next/prev buttons
     has_next = total_results > page * per_page

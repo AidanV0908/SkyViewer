@@ -482,6 +482,8 @@ def get_sat_data(satelliteId):
             "argp" : f"{argp:.4f}",
             "maxprop" : T_PROP_MAX,
             "classification" : classification,
+            "tle1" : line1,
+            "tle2" : line2,
         }
     else:
         return { "code" : code }

@@ -453,6 +453,7 @@ def get_sat_data(satelliteId):
         inc = orbit.inclination.degrees
         raan = orbit.longitude_of_ascending_node.degrees
         argp = orbit.argument_of_periapsis.degrees
+        mean_anomaly = orbit.mean_anomaly.degrees
         period = 2*np.pi*np.sqrt(np.pow(sma, 3) / MU) # s
 
         # Epoch time representations
@@ -482,6 +483,7 @@ def get_sat_data(satelliteId):
             "argp" : f"{argp:.4f}",
             "maxprop" : T_PROP_MAX,
             "classification" : classification,
+            "mean_anomaly" : f"{mean_anomaly:.4f}",
             "tle1" : line1,
             "tle2" : line2,
         }

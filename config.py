@@ -1,6 +1,6 @@
 # VERSION INFO
-VERSION = "1.0.3.1"
-DATE = '14-NOV-2024'
+VERSION = "1.0.3.2"
+DATE = '16-NOV-2024'
 
 # API INFO
 API_URL = "http://tle.ivanstanojevic.me/api/tle"
